@@ -1,0 +1,16 @@
+/dist/
+/bin/
+*.exe
+*.syso
+*.aar
+*.jks
+*.keystore
+android/app/libs/
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/.kotlin/
+.DS_Store
+*.test

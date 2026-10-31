@@ -1,0 +1,175 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to build (e.g. v1.0.0)"
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  TAG: ${{ github.event.inputs.tag || github.ref_name }}
+
+jobs:
+  # TAG is spliced into ldflags, file names and the release title: accept
+  # only a well-formed version tag (workflow_dispatch input or pushed tag).
+  check-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: validate tag
+        run: |
+          if ! printf '%s' "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$'; then
+            echo "::error::TAG must look like v1.2.3 (got: $TAG)"; exit 1
+          fi
+
+  windows:
+    needs: [check-tag]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: build
+        run: |
+          (cd cmd/privatevpn && go tool go-winres make --arch amd64,arm64 --in ../../build/windows/winres.json \
+            --product-version "${TAG#v}" --file-version "${TAG#v}")
+          for arch in amd64 arm64; do
+            out="dist/privatevpn-windows-$arch"
+            CGO_ENABLED=0 GOOS=windows GOARCH=$arch go build -trimpath \
+              -ldflags "-s -w -H windowsgui -X main.version=$TAG" -o "$out/privatevpn.exe" ./cmd/privatevpn
+            bash build/windows/fetch-wintun.sh "$arch" "$out"
+            cp README.md LICENSE "$out/" 2>/dev/null || true
+            (cd dist && zip -qr "privatevpn-windows-$arch.zip" "privatevpn-windows-$arch")
+          done
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: windows
+          path: dist/*.zip
+
+  linux:
+    needs: [check-tag]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: build
+        run: |
+          for arch in amd64 arm64; do
+            out="dist/privatevpn-linux-$arch"
+            CGO_ENABLED=0 GOOS=linux GOARCH=$arch go build -trimpath \
+              -ldflags "-s -w -X main.version=$TAG" -o "$out/privatevpn" ./cmd/privatevpn
+            cp build/linux/* "$out/" 2>/dev/null || true
+            cp README.md LICENSE "$out/" 2>/dev/null || true
+            tar -C dist -czf "dist/privatevpn-linux-$arch.tar.gz" "privatevpn-linux-$arch"
+          done
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: linux
+          path: dist/*.tar.gz
+
+  macos:
+    needs: [check-tag]
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: build
+        run: |
+          mkdir -p dist/macos
+          for arch in arm64 amd64; do
+            CGO_ENABLED=1 GOOS=darwin GOARCH=$arch go build -trimpath \
+              -ldflags "-s -w -X main.version=$TAG" -o "dist/macos/privatevpn-$arch" ./cmd/privatevpn
+          done
+          lipo -create -output dist/macos/privatevpn dist/macos/privatevpn-arm64 dist/macos/privatevpn-amd64
+          bash build/macos/make-app.sh dist/macos/privatevpn "$TAG" dist/macos
+          (cd dist/macos && ditto -c -k --keepParent PrivateVPN.app ../PrivateVPN-macos-universal.zip)
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: macos
+          path: dist/*.zip
+
+  android:
+    needs: [check-tag]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+      - name: sdk packages
+        run: sdkmanager --install "platforms;android-36" "build-tools;36.0.0" "ndk;27.2.12479018"
+      - name: core.aar
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.2.12479018
+        run: |
+          mkdir -p android/app/libs bin/gomobile
+          go build -o bin/gomobile/gobind golang.org/x/mobile/cmd/gobind
+          export PATH="$PWD/bin/gomobile:$PATH"
+          go tool gomobile bind -target android/arm64,android/arm,android/amd64 -androidapi 26 \
+            -javapkg app.privatevpn -trimpath -ldflags "-s -w -X main.version=$TAG" \
+            -o android/app/libs/core.aar ./mobile
+      - name: signed APK
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_B64" ]; then
+            echo "::warning::Android signing secrets are not configured; APK not built in CI"
+            exit 0
+          fi
+          echo "$ANDROID_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          export ANDROID_KEYSTORE_FILE="$RUNNER_TEMP/release.jks"
+          ./gradlew --no-daemon assembleRelease -PappVersion="${TAG#v}"
+          rm -f "$RUNNER_TEMP/release.jks"
+          mkdir -p ../dist && cp app/build/outputs/apk/release/app-release.apk ../dist/privatevpn-android.apk
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: android
+          path: dist/*.apk
+          if-no-files-found: ignore
+
+  publish:
+    needs: [windows, linux, macos, android]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: out
+          merge-multiple: true
+      - name: checksums and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd out
+          sha256sum * > SHA256SUMS
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "PrivateVPN $TAG" \
+            --notes "Downloads: Windows (zip with privatevpn.exe + wintun.dll), macOS (PrivateVPN.app), Linux (tar.gz), Android (APK). Verify with SHA256SUMS." \
+            ./*

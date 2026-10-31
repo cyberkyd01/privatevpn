@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PrivateVPN</string>
+    <string name="vpn_channel_name">VPN connection</string>
+    <string name="vpn_channel_description">Shown while PrivateVPN routes this device\'s traffic through a gateway.</string>
+</resources>

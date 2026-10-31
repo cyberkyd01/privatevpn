@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="referrer" content="no-referrer">
+  <title>PrivateVPN</title>
+  <link rel="icon" href="/icons.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body data-page="app">
+<div class="shell">
+  <nav class="sidebar" aria-label="Main">
+    <div class="brand">
+      <svg class="brand-mark" aria-hidden="true"><use href="/icons.svg#i-shield"></use></svg>
+      <span>PrivateVPN</span>
+    </div>
+    <ul class="nav">
+      <li><button type="button" class="nav-item" data-view="gateways"><svg class="icon" aria-hidden="true"><use href="/icons.svg#i-gateways"></use></svg><span>Gateways</span></button></li>
+      <li><button type="button" class="nav-item" data-view="networks"><svg class="icon" aria-hidden="true"><use href="/icons.svg#i-key"></use></svg><span>Networks</span></button></li>
+      <li><button type="button" class="nav-item" data-view="gateway"><svg class="icon" aria-hidden="true"><use href="/icons.svg#i-router"></use></svg><span>Gateway mode</span></button></li>
+      <li><button type="button" class="nav-item" data-view="status"><svg class="icon" aria-hidden="true"><use href="/icons.svg#i-activity"></use></svg><span>Status</span></button></li>
+      <li><button type="button" class="nav-item" data-view="log"><svg class="icon" aria-hidden="true"><use href="/icons.svg#i-log"></use></svg><span>Log</span></button></li>
+      <li><button type="button" class="nav-item" data-view="settings"><svg class="icon" aria-hidden="true"><use href="/icons.svg#i-settings"></use></svg><span>Settings</span></button></li>
+    </ul>
+    <div class="side-foot">
+      <div id="side-client" class="side-pill"><span class="dot"></span><span class="side-pill-text">Not connected</span></div>
+      <div id="side-gateway" class="side-pill"><span class="dot"></span><span class="side-pill-text">Gateway off</span></div>
+      <div id="side-version" class="faint small"></div>
+    </div>
+  </nav>
+
+  <main id="main" class="main">
+    <section id="problems" class="problems" aria-live="polite" aria-label="Problems" hidden></section>
+    <div id="banners" class="banners"></div>
+
+    <!-- Gateways (start view) -->
+    <section class="view" id="view-gateways" hidden>
+      <header class="view-head">
+        <div>
+          <h1>Gateways</h1>
+          <p class="lead">PrivateVPN gateways on your network. A locked gateway needs its network key once.</p>
+        </div>
+        <div class="head-actions">
+          <button type="button" class="btn" id="btn-add-manual"><svg class="icon" aria-hidden="true"><use href="/icons.svg#i-plus"></use></svg><span>Add gateway by address</span></button>
+        </div>
+      </header>
+
+      <div id="conn-summary"></div>
+
+      <form id="form-manual" class="card form-card" hidden novalidate>
+        <h2>Add gateway by address</h2>
+        <p class="muted small">For a gateway outside this LAN (with its UDP ports forwarded) or one whose announcements don't reach this device.</p>
+        <div class="grid-2">
+          <label class="field"><span>Label</span><input name="label" maxlength="32" placeholder="Home" autocomplete="off" required></label>
+          <label class="field"><span>Host name or IP address</span><input name="host" maxlength="253" placeholder="home.example.org" autocomplete="off" spellcheck="false" required></label>
+          <label class="field"><span>Control port</span><input name="ctrl_port" type="number" min="1024" max="65535" placeholder="51821"></label>
+          <label class="field"><span>Network</span><select name="keyring_id" id="manual-network"><option value="">Try my keys automatically</option></select></label>
+        </div>
+        <p class="form-error" hidden></p>
+        <div class="form-actions">
+          <button type="button" class="btn ghost" data-cancel>Cancel</button>
+          <button type="submit" class="btn primary">Add gateway</button>
+        </div>
+      </form>
+
+      <div id="gw-list" class="list"></div>
+      <div id="gw-empty" class="empty card" hidden>
+        <svg class="empty-icon" aria-hidden="true"><use href="/icons.svg#i-gateways"></use></svg>
+        <h2>Looking for gateways…</h2>
+        <p class="muted">Gateways on this Wi-Fi or LAN appear here automatically within a few seconds. Anyone on the LAN can see them; connecting needs the gateway's network key, which you enter once.</p>
+        <p class="muted small">Not showing up? The gateway's network may block broadcasts — use <strong>Add gateway by address</strong>.</p>
+      </div>
+    </section>
+
+    <!-- Networks (keyring) -->
+    <section class="view" id="view-networks" hidden>
+      <header class="view-head">
+        <div>
+          <h1>Networks</h1>
+          <p class="lead">The network keys this device holds. A key opens every gateway of its network.</p>
+        </div>
+        <div class="head-actions">
+          <button type="button" class="btn" id="btn-add-key"><svg class="icon" aria-hidden="true"><use href="/icons.svg#i-paste"></use></svg><span>Add key</span></button>
+          <button type="button" class="btn primary" id="btn-create-network"><svg class="icon" aria-hidden="true"><use href="/icons.svg#i-plus"></use></svg><span>Create network</span></button>
+        </div>
+      </header>
+
+      <div class="callout warn">
+        <svg class="icon" aria-hidden="true"><use href="/icons.svg#i-alert"></use></svg>
+        <p>Anyone who has a network key can use that network's gateways — their Internet connection and, where allowed, their local network. Share keys only with devices you own or people you trust with your Internet connection.</p>
+      </div>
+
+      <form id="form-add-key" class="card form-card" hidden novalidate>
+        <h2>Add a network key</h2>
+        <label class="field"><span>Network key</span><textarea name="key_text" rows="2" class="mono" placeholder="PVN1-XXXXX-XXXXX-…" autocomplete="off" spellcheck="false" required></textarea></label>
+        <label class="field"><span>Label (optional)</span><input name="label" maxlength="32" placeholder="Alice's network" autocomplete="off"></label>
+        <p class="form-error" hidden></p>
+        <div class="form-actions">
+          <button type="button" class="btn ghost" data-paste>Paste</button>
+          <button type="button" class="btn ghost" data-cancel>Cancel</button>
+          <button type="submit" class="btn primary">Add key</button>
+        </div>
+      </form>
+
+      <form id="form-create" class="card form-card" hidden novalidate>
+        <h2>Create a network</h2>
+        <p class="muted small">Creates a new random network key on this computer. Use it to run this computer as a gateway and give the key to your other devices.</p>
+        <label class="field"><span>Label (optional)</span><input name="label" maxlength="32" placeholder="My network" autocomplete="off"></label>
+        <p class="form-error" hidden></p>
+        <div class="form-actions">
+          <button type="button" class="btn ghost" data-cancel>Cancel</button>
+          <button type="submit" class="btn primary">Create network</button>
+        </div>
+      </form>
+
+      <div id="kr-list" class="list"></div>
+      <div id="kr-empty" class="empty card" hidden>
+        <svg class="empty-icon" aria-hidden="true"><use href="/icons.svg#i-key"></use></svg>
+        <h2>No network keys yet</h2>
+        <p class="muted">Create a network on a computer that will act as a gateway, or add a key you were given. You can also just press Connect on a locked gateway and paste its key there.</p>
+      </div>
+    </section>
+
+    <!-- Gateway mode -->
+    <section class="view" id="view-gateway" hidden>
+      <header class="view-head">
+        <div>
+          <h1>Gateway mode</h1>
+          <p class="lead">Let your own devices — and people you trust — use this computer's Internet connection.</p>
+        </div>
+      </header>
+
+      <div class="card hero">
+        <div class="setting-row">
+          <div>
+            <h2>Act as VPN gateway</h2>
+            <p id="gwm-state" class="muted">Off</p>
+          </div>
+          <label class="switch big"><input type="checkbox" id="gwm-switch" role="switch" aria-label="Act as VPN gateway"><span class="slider" aria-hidden="true"></span></label>
+        </div>
+        <div class="callout warn small">
+          <svg class="icon" aria-hidden="true"><use href="/icons.svg#i-alert"></use></svg>
+          <p>Members' traffic will exit from your Internet connection and carry your public IP.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Network</h2>
+        <label class="field"><span>Network served by this gateway</span><select id="gwm-network"></select></label>
+        <p class="muted small" id="gwm-network-note">Only devices holding this network's key can connect. Switching networks restarts the gateway and disconnects its members.</p>
+      </div>
+
+      <div class="card">
+        <h2>Gateway name</h2>
+        <form id="form-gw-name" class="inline-form" novalidate>
+          <label class="field grow"><span>Name</span><input name="device_name" maxlength="32" autocomplete="off" spellcheck="false" required></label>
+          <button type="submit" class="btn">Save</button>
+        </form>
+        <p class="muted small">This name is visible to every PrivateVPN device on the LAN, even without the key — along with the OS, app version and the number of connected clients. Avoid using a person's name.</p>
+      </div>
+
+      <div class="card">
+        <h2>Access</h2>
+        <div class="setting-row">
+          <div>
+            <strong>Allow my local network</strong>
+            <p class="muted small">Members may reach devices on this computer's LAN (printers, NAS…). Off means Internet only. This computer itself is never reachable from members.</p>
+          </div>
+          <label class="switch"><input type="checkbox" id="gwm-lan" role="switch" aria-label="Allow my local network"><span class="slider" aria-hidden="true"></span></label>
+        </div>
+        <div class="setting-row">
+          <div>
+            <strong>Public IP and location lookup</strong>
+            <p class="muted small">Looks up this computer's public IP and approximate (city-level) location so members can see where they will appear to be. Off means no lookups are made.</p>
+          </div>
+          <label class="switch"><input type="checkbox" id="gwm-geo" role="switch" aria-label="Public IP and location lookup"><span class="slider" aria-hidden="true"></span></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Ports</h2>
+        <form id="form-ports" class="inline-form wrap" novalidate>
+          <label class="field"><span>WireGuard (UDP)</span><input name="wg_port" type="number" min="1024" max="65535" placeholder="51820"></label>
+          <label class="field"><span>Control (UDP)</span><input name="ctrl_port" type="number" min="1024" max="65535" placeholder="51821"></label>
+          <button type="submit" class="btn">Save ports</button>
+        </form>
+        <p class="muted small">Changing ports restarts the gateway. Announcements always use UDP 51822.</p>
+      </div>
+
+      <div class="card">
+        <h2>Reachability</h2>
+        <dl class="kv" id="gwm-reach"></dl>
+      </div>
+
+      <div class="card danger-zone">
+        <h2>Reset key</h2>
+        <p class="muted">Replaces the served network's key with a new one. Every member must enter the new key; connected members are disconnected. This is how you revoke access.</p>
+        <button type="button" class="btn danger" id="btn-reset-key"><svg class="icon" aria-hidden="true"><use href="/icons.svg#i-refresh"></use></svg><span>Reset key…</span></button>
+        <div id="reset-result"></div>
+      </div>
+    </section>
+
+    <!-- Status -->
+    <section class="view" id="view-status" hidden>
+      <header class="view-head">
+        <div>
+          <h1>Status</h1>
+          <p class="lead">This device's connection and gateway at a glance.</p>
+        </div>
+      </header>
+      <div class="grid-cards">
+        <div class="card" id="st-client"></div>
+        <div class="card" id="st-gateway"></div>
+      </div>
+    </section>
+
+    <!-- Log -->
+    <section class="view" id="view-log" hidden>
+      <header class="view-head">
+        <div>
+          <h1>Log</h1>
+          <p class="lead">Recent events, kept in memory only — nothing is written to disk.</p>
+        </div>
+        <div class="head-actions">
+          <input type="search" id="log-filter" class="input" placeholder="Filter" aria-label="Filter log lines" autocomplete="off">
+          <button type="button" class="btn" id="btn-log-copy"><svg class="icon" aria-hidden="true"><use href="/icons.svg#i-copy"></use></svg><span>Copy</span></button>
+        </div>
+      </header>
+      <div class="card log-card">
+        <pre id="log-box" class="log" tabindex="0"></pre>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section class="view" id="view-settings" hidden>
+      <header class="view-head">
+        <div>
+          <h1>Settings</h1>
+          <p class="lead">Preferences for this device.</p>
+        </div>
+      </header>
+
+      <div class="card">
+        <h2>Connection protection</h2>
+        <div class="setting-row">
+          <div>
+            <strong>Kill switch</strong>
+            <p class="muted small">Blocks all Internet traffic outside the VPN from the moment you connect until you choose Disconnect — even if the gateway goes offline or PrivateVPN crashes. Restarting the computer clears it (with “Reconnect automatically after restart” on, PrivateVPN blocks again at login and reconnects).</p>
+          </div>
+          <label class="switch"><input type="checkbox" id="set-killswitch" role="switch" aria-label="Kill switch"><span class="slider" aria-hidden="true"></span></label>
+        </div>
+        <div class="setting-row">
+          <div>
+            <strong>Allow local network while blocked</strong>
+            <p class="muted small">Keeps printers, file shares and other devices on your local network reachable while the kill switch blocks the Internet. Internet traffic still never leaves outside the VPN.</p>
+          </div>
+          <label class="switch"><input type="checkbox" id="set-allowlan" role="switch" aria-label="Allow local network while blocked"><span class="slider" aria-hidden="true"></span></label>
+        </div>
+        <div class="setting-row">
+          <div>
+            <strong>Reconnect automatically after restart</strong>
+            <p class="muted small">If you were connected when the computer restarted, crashed or logged off, PrivateVPN reconnects to the same gateway when it starts again. Choosing Disconnect or Quit stops this.</p>
+            <p class="muted small" id="set-ar-admin">After a restart your computer stays blocked until PrivateVPN reconnects; Windows/macOS/Linux will ask for administrator approval at login.</p>
+            <p class="small form-error" id="set-ar-hint" hidden>“Start PrivateVPN when you log in” is off, so this happens only when you start PrivateVPN yourself.</p>
+          </div>
+          <label class="switch"><input type="checkbox" id="set-autoreconnect" role="switch" aria-label="Reconnect automatically after restart"><span class="slider" aria-hidden="true"></span></label>
+        </div>
+        <p class="muted small" id="set-ks-note" hidden></p>
+      </div>
+
+      <div class="card">
+        <h2>Device</h2>
+        <form id="form-device-name" class="inline-form" novalidate>
+          <label class="field grow"><span>Device name</span><input name="device_name" maxlength="32" autocomplete="off" spellcheck="false" required></label>
+          <button type="submit" class="btn">Save</button>
+        </form>
+        <p class="muted small">Used as the gateway name and visible to every PrivateVPN device on the LAN while gateway mode is on.</p>
+      </div>
+
+      <div class="card">
+        <h2>App</h2>
+        <div class="setting-row">
+          <div>
+            <strong>Start PrivateVPN when you log in</strong>
+            <p class="muted small">Starts PrivateVPN in the tray when you sign in, restores gateway mode if it was on and — with “Reconnect automatically after restart” — reconnects the VPN you were using.</p>
+          </div>
+          <label class="switch"><input type="checkbox" id="set-autostart" role="switch" aria-label="Start PrivateVPN when you log in"><span class="slider" aria-hidden="true"></span></label>
+        </div>
+        <div class="setting-row">
+          <div>
+            <strong>Theme</strong>
+            <p class="muted small">Follow the system or pick one.</p>
+          </div>
+          <div class="segmented" role="radiogroup" aria-label="Theme" id="set-theme">
+            <label><input type="radio" name="theme" value="system"><span>System</span></label>
+            <label><input type="radio" name="theme" value="light"><span>Light</span></label>
+            <label><input type="radio" name="theme" value="dark"><span>Dark</span></label>
+          </div>
+        </div>
+        <form id="form-ui-port" class="setting-row" novalidate>
+          <div>
+            <strong>Local web UI port</strong>
+            <p class="muted small">127.0.0.1 only. Takes effect after PrivateVPN restarts; 47772–47780 are used if it is busy.</p>
+          </div>
+          <div class="inline-form">
+            <input name="port" type="number" min="1024" max="65535" placeholder="47771" class="input narrow" aria-label="Local web UI port">
+            <button type="submit" class="btn">Save</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>About</h2>
+        <dl class="kv" id="about"></dl>
+        <p class="muted small">PrivateVPN keeps no logs on disk and stores nothing about the devices that connect through your gateway.</p>
+        <div class="form-actions start">
+          <button type="button" class="btn" id="btn-signout"><svg class="icon" aria-hidden="true"><use href="/icons.svg#i-signout"></use></svg><span>Sign out of this browser</span></button>
+          <button type="button" class="btn danger" id="btn-quit"><svg class="icon" aria-hidden="true"><use href="/icons.svg#i-power"></use></svg><span>Quit PrivateVPN</span></button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ⓘ details panel -->
+<div id="drawer-backdrop" class="backdrop" hidden></div>
+<aside id="drawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="dr-title" hidden>
+  <header class="drawer-head">
+    <div class="os-tile" id="dr-os"></div>
+    <div class="grow">
+      <h2 id="dr-title"></h2>
+      <div id="dr-badges" class="badges"></div>
+    </div>
+    <button type="button" class="icon-btn" id="dr-close" aria-label="Close details"><svg class="icon" aria-hidden="true"><use href="/icons.svg#i-x"></use></svg></button>
+  </header>
+  <div class="drawer-body" id="dr-body"></div>
+  <footer class="drawer-foot" id="dr-foot"></footer>
+</aside>
+
+<!-- confirm dialog -->
+<dialog id="dlg" class="dialog" aria-labelledby="dlg-title">
+  <div class="dialog-body">
+    <h2 id="dlg-title"></h2>
+    <p id="dlg-text"></p>
+    <div id="dlg-extra"></div>
+    <div class="form-actions">
+      <button type="button" class="btn ghost" id="dlg-cancel">Cancel</button>
+      <button type="button" class="btn primary" id="dlg-ok">OK</button>
+    </div>
+  </div>
+</dialog>
+
+<div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+</body>
+</html>
