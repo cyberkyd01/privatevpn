@@ -20,7 +20,7 @@ jobs:
         run: |
           go vet ./...
           GOOS=windows go vet ./...
-          GOOS=darwin go vet $(go list -f '{{if not .CgoFiles}}{{.ImportPath}}{{end}}' ./... )
+          # macOS code is vetted natively in the macos job (the tray needs cgo there).
       - name: test
         run: go test -race -count=1 ./...
       - name: fuzz (short)
@@ -35,13 +35,16 @@ jobs:
           CGO_ENABLED=0 GOOS=android GOARCH=arm64 go build -o /dev/null ./mobile
 
   macos:
-    runs-on: macos-14
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-      - run: CGO_ENABLED=1 go build -trimpath -o /dev/null ./cmd/privatevpn
+      - name: vet and build
+        run: |
+          go vet ./...
+          CGO_ENABLED=1 go build -trimpath -o /dev/null ./cmd/privatevpn
 
   android:
     runs-on: ubuntu-latest
