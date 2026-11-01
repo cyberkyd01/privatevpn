@@ -20,23 +20,24 @@ Members-only personal VPN gateways. Install PrivateVPN on your computers and pho
 Download from the [Releases](../../releases) page and check the file against `SHA256SUMS`.
 
 ### Windows
-1. Unzip `privatevpn-windows-amd64.zip` (keep `privatevpn.exe` and `wintun.dll` together).
-2. Run `privatevpn.exe`. Builds are not code-signed yet: on the SmartScreen prompt choose **More info → Run anyway**.
-3. A shield icon appears in the tray (it may hide under the **^** arrow). Click it → **Open PrivateVPN**.
+1. Run `privatevpn-windows-amd64-setup.exe` (Windows on Arm: `privatevpn-windows-arm64-setup.exe`). Builds are not code-signed yet: on the SmartScreen prompt choose **More info → Run anyway**, then accept the administrator prompt. The installer puts PrivateVPN in `Program Files`, adds the Windows Firewall rules and starts it.
+2. A shield icon appears in the tray (it may hide under the **^** arrow). Click it → **Open PrivateVPN**.
+
+Portable alternative: unzip `privatevpn-windows-amd64.zip` and run `privatevpn.exe` (keep it next to `wintun.dll`). Moving from the portable copy to the installer, **Disconnect** and **Quit** the portable one first. Uninstall from **Settings → Apps → PrivateVPN**; this also removes the kill-switch block and the firewall rules.
 
 ### Android
 1. Copy `privatevpn-android.apk` to the phone and open it (allow "Install unknown apps" for your file manager/browser when asked).
 2. Open PrivateVPN: gateways on your Wi-Fi appear automatically.
 
 ### macOS
-Unzip `PrivateVPN-macos-universal.zip`, move `PrivateVPN.app` to Applications, then right-click → **Open** the first time (the build is ad-hoc signed, not notarised). The icon appears in the menu bar.
+Open `PrivateVPN-macos-universal.dmg` and drag **PrivateVPN** to **Applications**. The build is ad-hoc signed, not notarised, so the first time right-click it → **Open** (macOS 15 and later: open it once, then **System Settings → Privacy & Security → Open Anyway**). The icon appears in the menu bar.
 
 ### Linux
 Extract `privatevpn-linux-<arch>.tar.gz` and run `./privatevpn` (needs a StatusNotifier tray host, e.g. KDE or GNOME with the AppIndicator extension; otherwise run `./privatevpn --no-tray` and open the printed URL). Install `app.privatevpn.policy` to `/usr/share/polkit-1/actions/` for a friendly password prompt.
 
 ## Quick start: Windows gateway, Android phone
 
-1. **Windows:** tray icon → **Open PrivateVPN** → **Gateway mode** → switch on. The first time, Windows asks for administrator approval to add a firewall rule for PrivateVPN (UDP only; on networks Windows calls "Public" — most home Wi-Fi — only devices on your local network are admitted) — accept it. A network key is created automatically.
+1. **Windows:** tray icon → **Open PrivateVPN** → **Gateway mode** → switch on. A network key is created automatically. The installer already added the Windows Firewall rule (UDP only; on networks Windows calls "Public", which is most home Wi-Fi, only devices on your local network are admitted); with the portable zip, Windows asks for administrator approval to add it the first time.
 2. Still on Windows: **Networks** → your network → **Show key** — a QR code and the key text (`PVN1-…`) are displayed.
 3. **Android:** open PrivateVPN. The Windows PC appears in the list with a 🔒. Tap **Connect** → **Scan QR code** (or paste the key). The key is checked instantly against the gateway's announcement and saved — you won't be asked again for this network.
 4. Android asks once to allow the VPN connection. Accept. You're connected: the status card shows the gateway, your tunnel address and traffic.
@@ -85,8 +86,10 @@ Requirements: Go 1.27+, for Android the Android SDK + NDK 27/28 and JDK 21.
 ```sh
 make test       # unit + integration tests
 make windows    # dist/windows-*/privatevpn.exe (+ wintun.dll, hash-verified)
+make windows-installer  # dist/privatevpn-windows-*-setup.exe (needs makensis)
 make linux
 make macos      # dist/macos/PrivateVPN.app (run on a Mac)
+make dmg        # dist/PrivateVPN-macos-universal.dmg
 make android    # dist/android/privatevpn-android.apk
 ```
 

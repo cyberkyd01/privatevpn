@@ -37,6 +37,8 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
+      - name: install NSIS
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq nsis
       - name: build
         run: |
           (cd cmd/privatevpn && go tool go-winres make --arch amd64,arm64 --in ../../build/windows/winres.json \
@@ -47,12 +49,15 @@ jobs:
               -ldflags "-s -w -H windowsgui -X main.version=$TAG" -o "$out/privatevpn.exe" ./cmd/privatevpn
             bash build/windows/fetch-wintun.sh "$arch" "$out"
             cp README.md LICENSE "$out/" 2>/dev/null || true
+            bash build/windows/make-installer.sh "$arch" "$TAG" "$out" "dist/privatevpn-windows-$arch-setup.exe"
             (cd dist && zip -qr "privatevpn-windows-$arch.zip" "privatevpn-windows-$arch")
           done
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: windows
-          path: dist/*.zip
+          path: |
+            dist/*.zip
+            dist/*-setup.exe
 
   linux:
     needs: [check-tag]
@@ -98,11 +103,11 @@ jobs:
           done
           lipo -create -output dist/macos/privatevpn dist/macos/privatevpn-arm64 dist/macos/privatevpn-amd64
           bash build/macos/make-app.sh dist/macos/privatevpn "$TAG" dist/macos
-          (cd dist/macos && ditto -c -k --keepParent PrivateVPN.app ../PrivateVPN-macos-universal.zip)
+          bash build/macos/make-dmg.sh dist/macos/PrivateVPN.app dist/PrivateVPN-macos-universal.dmg
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: macos
-          path: dist/*.zip
+          path: dist/*.dmg
 
   android:
     needs: [check-tag]
@@ -170,6 +175,18 @@ jobs:
         run: |
           cd out
           sha256sum * > SHA256SUMS
+          cat > "$RUNNER_TEMP/notes.md" <<'EOF'
+          | Device | Download |
+          |---|---|
+          | Windows 10/11 (Intel/AMD) | `privatevpn-windows-amd64-setup.exe` (installer), or `privatevpn-windows-amd64.zip` (portable) |
+          | Windows on Arm | `privatevpn-windows-arm64-setup.exe`, or `privatevpn-windows-arm64.zip` |
+          | macOS 11+ (Apple silicon and Intel) | `PrivateVPN-macos-universal.dmg` |
+          | Linux | `privatevpn-linux-amd64.tar.gz`, `privatevpn-linux-arm64.tar.gz` |
+          | Android 8+ | `privatevpn-android.apk` |
+
+          The builds are not code-signed by Microsoft or Apple. Windows: on the SmartScreen prompt choose **More info → Run anyway**. macOS: right-click PrivateVPN → **Open**, or allow it under **System Settings → Privacy & Security**. Check every download against `SHA256SUMS`.
+
+          Setup and the Windows-gateway / Android-phone walkthrough: see the [README](https://github.com/cyberkyd01/privatevpn#readme).
+          EOF
           gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "PrivateVPN $TAG" \
-            --notes "Downloads: Windows (zip with privatevpn.exe + wintun.dll), macOS (PrivateVPN.app), Linux (tar.gz), Android (APK). Verify with SHA256SUMS." \
-            ./*
+            --notes-file "$RUNNER_TEMP/notes.md" ./*

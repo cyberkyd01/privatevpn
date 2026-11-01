@@ -66,3 +66,10 @@ Where the implementation intentionally differs from, or fills a gap in, `ARCHITE
 | # | Decision | Why |
 |---|---|---|
 | I23 | Two program-scoped UDP rules: `PrivateVPN` (Private + Domain profiles, any remote address) and `PrivateVPN (public, local subnet)` (Public profile, `remoteip=localsubnet`). | Windows classifies most home Wi-Fi networks as **Public**; a Private/Domain-only rule (§13.6) silently blocks phones on the same Wi-Fi. On Public networks only LAN peers are admitted, and every PrivateVPN listener stays silent to anyone without the network key. |
+
+## Packaging
+
+| # | Decision | Why |
+|---|---|---|
+| I35 | **Windows installer** (NSIS, `build/windows/installer.nsi`, one per architecture, cross-built on Linux): per-machine into `%ProgramFiles%\PrivateVPN` with no directory page; stops running copies (`taskkill`; a connected client stays blocked by the kill switch until it restarts), adds the firewall rules with `privatevpn firewall add` while elevated, repoints an existing HKCU `Run` autostart value at the installed copy, and starts the app through `explorer.exe` so it runs unelevated. The uninstaller runs `unblock` and `firewall remove`, deletes the autostart value and asks (default No) before deleting `%LOCALAPPDATA%\PrivateVPN`; if `unblock` fails it keeps `privatevpn.exe` and says how to run it. The portable zip stays available. | The elevated helper runs the app's own executable, so it belongs in an administrator-only directory; one UAC prompt at install replaces the later firewall prompt. Moving from the portable copy while connected is not handled (the WFP permit names the old path): Disconnect first (README). |
+| I36 | **macOS disk image**: `PrivateVPN-macos-universal.dmg` (UDZO, HFS+, `PrivateVPN.app` + `Applications` link) replaces the zip. | Standard drag-to-install; the app stays ad-hoc signed and not notarised. |

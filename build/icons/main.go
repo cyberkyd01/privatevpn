@@ -1,7 +1,7 @@
 // Command icons generates every PrivateVPN icon from code: the five tray
 // states (idle, gateway on, connected, both, warning) in colour (PNG, ICO) and as
 // macOS template images, plus the application icon for Windows (go-winres
-// input), Linux (.desktop) and macOS (.icns).
+// input, installer .ico), Linux (.desktop) and macOS (.icns).
 //
 // Run from the repository root:  go run ./build/icons
 //
@@ -367,6 +367,7 @@ func main() {
 		write(*root, "desktop/tray/icons/"+s.name+"_template.png", pngBytes(render(32, trayPainter(s, true))))
 	}
 	write(*root, "build/windows/icon.png", pngBytes(render(256, appPainter)))
+	write(*root, "build/windows/icon.ico", icoBytes(appPainter, []int{16, 24, 32, 48, 64, 256}))
 	write(*root, "build/linux/icon.png", pngBytes(render(256, appPainter)))
 	write(*root, "build/macos/icon.icns", icnsBytes(appPainter))
 }

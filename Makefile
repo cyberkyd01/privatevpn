@@ -14,7 +14,7 @@ ANDROID_JAVA_HOME ?= $(if $(shell test -x "$(STUDIO_JBR)/bin/java" && echo y),$(
 APP_VERSION := $(shell echo '$(VERSION)' | sed -nE 's/^v?([0-9]+\.[0-9]+\.[0-9]+)$$/\1/p')
 GRADLE_VERSION_ARG := $(if $(APP_VERSION),-PappVersion=$(APP_VERSION))
 
-.PHONY: all test vet desktop windows linux macos core-aar android android-debug clean
+.PHONY: all test vet desktop windows windows-installer linux macos dmg core-aar android android-debug clean
 
 all: test windows linux macos android
 
@@ -36,6 +36,12 @@ windows:
 	  bash build/windows/fetch-wintun.sh $$arch $(DIST)/windows-$$arch ; \
 	done
 
+# Needs makensis (NSIS 3): apt install nsis / brew install makensis.
+windows-installer: windows
+	for arch in amd64 arm64; do \
+	  bash build/windows/make-installer.sh $$arch $(VERSION) $(DIST)/windows-$$arch $(DIST)/privatevpn-windows-$$arch-setup.exe ; \
+	done
+
 linux:
 	for arch in amd64 arm64; do \
 	  CGO_ENABLED=0 GOOS=linux GOARCH=$$arch go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(DIST)/linux-$$arch/privatevpn ./cmd/privatevpn ; \
@@ -46,6 +52,9 @@ macos:
 	CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(DIST)/macos/privatevpn-amd64 ./cmd/privatevpn
 	lipo -create -output $(DIST)/macos/privatevpn $(DIST)/macos/privatevpn-arm64 $(DIST)/macos/privatevpn-amd64
 	bash build/macos/make-app.sh $(DIST)/macos/privatevpn $(VERSION) $(DIST)/macos
+
+dmg: macos
+	bash build/macos/make-dmg.sh $(DIST)/macos/PrivateVPN.app $(DIST)/PrivateVPN-macos-universal.dmg
 
 # gomobile bind looks up gobind on PATH: build the go.mod-pinned one into bin/ (git-ignored)
 # instead of requiring `gomobile init` / a global install.
