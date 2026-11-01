@@ -1,5 +1,5 @@
 // Package netkey implements the Network Key (ARCHITECTURE §5.1, §5.2):
-// generation, the PVN1 text form, and HKDF-derived subkeys.
+// generation, the PVP1 text form, and HKDF-derived subkeys.
 package netkey
 
 import (
@@ -16,18 +16,18 @@ import (
 const Size = 32
 
 const (
-	textPrefix = "PVN1"
-	checkLabel = "pvn1 key check"
-	hkdfSalt   = "PrivateVPN-v1"
+	textPrefix = "PVP1"
+	checkLabel = "pvp1 key check"
+	hkdfSalt   = "PrivateVPNPro-v1"
 )
 
 // HKDF info labels (§5.2).
 const (
-	labelBeacon      = "pvn1 beacon"
-	labelControl     = "pvn1 control"
-	labelPSK         = "pvn1 wg psk"
-	labelDirectory   = "pvn1 directory"
-	labelDirectoryID = "pvn1 directory id"
+	labelBeacon      = "pvp1 beacon"
+	labelControl     = "pvp1 control"
+	labelPSK         = "pvp1 wg psk"
+	labelDirectory   = "pvp1 directory"
+	labelDirectoryID = "pvp1 directory id"
 )
 
 var b32 = base32.StdEncoding.WithPadding(base32.NoPadding)
@@ -53,7 +53,7 @@ func check(k Key) [2]byte {
 	return [2]byte{h[0], h[1]}
 }
 
-// Text returns the PVN1 text form, e.g. "PVN1-K7Q2M-ZB3XW-…" (70 chars).
+// Text returns the PVP1 text form, e.g. "PVP1-K7Q2M-ZB3XW-…" (70 chars).
 func (k Key) Text() string {
 	c := check(k)
 	raw := append(append([]byte{}, k[:]...), c[:]...)
@@ -67,7 +67,7 @@ func (k Key) Text() string {
 	return sb.String()
 }
 
-// Parse decodes the PVN1 text form. Whitespace and '-' are ignored and the
+// Parse decodes the PVP1 text form. Whitespace and '-' are ignored and the
 // input is case-insensitive.
 func Parse(text string) (Key, error) {
 	var k Key

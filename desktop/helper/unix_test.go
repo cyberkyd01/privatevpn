@@ -16,7 +16,7 @@ import (
 func shortTempDir(t *testing.T) string {
 	t.Helper()
 	// t.TempDir() can exceed the 104-byte sun_path limit on macOS.
-	d, err := os.MkdirTemp("/tmp", "pvn")
+	d, err := os.MkdirTemp("/tmp", "pvp")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +48,7 @@ func TestSocketpairPeerUID(t *testing.T) {
 }
 
 func TestValidSocketPath(t *testing.T) {
-	for _, ok := range []string{"/run/user/1000/privatevpn/helper-0123456789abcdef.sock", "/tmp/privatevpn-501/helper-0123456789abcdef.sock"} {
+	for _, ok := range []string{"/run/user/1000/private-vpn-pro/helper-0123456789abcdef.sock", "/tmp/private-vpn-pro-501/helper-0123456789abcdef.sock"} {
 		if validSocketPath(ok) != nil {
 			t.Errorf("%s rejected", ok)
 		}
@@ -64,15 +64,15 @@ func TestValidSocketPath(t *testing.T) {
 }
 
 func TestParseArgsUnix(t *testing.T) {
-	o, err := parseArgs([]string{"--socket", "/tmp/privatevpn-501/helper-0123456789abcdef.sock", "--uid", "501"})
+	o, err := parseArgs([]string{"--socket", "/tmp/private-vpn-pro-501/helper-0123456789abcdef.sock", "--uid", "501"})
 	if err != nil || o.uid != 501 {
 		t.Fatalf("%+v %v", o, err)
 	}
 	for _, bad := range [][]string{
 		{"--socket", "/tmp/x.sock", "--uid", "501"},
-		{"--socket", "/tmp/privatevpn-501/helper-0123456789abcdef.sock", "--uid", "-1"},
-		{"--socket", "/tmp/privatevpn-501/helper-0123456789abcdef.sock", "--uid", "x"},
-		{"--socket", "/tmp/privatevpn-501/helper-0123456789abcdef.sock", "--uid", "501", "extra"},
+		{"--socket", "/tmp/private-vpn-pro-501/helper-0123456789abcdef.sock", "--uid", "-1"},
+		{"--socket", "/tmp/private-vpn-pro-501/helper-0123456789abcdef.sock", "--uid", "x"},
+		{"--socket", "/tmp/private-vpn-pro-501/helper-0123456789abcdef.sock", "--uid", "501", "extra"},
 		{"--pipe", "x"},
 	} {
 		if _, err := parseArgs(bad); err == nil {
@@ -83,7 +83,7 @@ func TestParseArgsUnix(t *testing.T) {
 		t.Error("Run with bad args")
 	}
 	if os.Geteuid() != 0 {
-		if code := Run([]string{"--socket", "/tmp/privatevpn-501/helper-0123456789abcdef.sock", "--uid", "501"}); code != exitNotElevated {
+		if code := Run([]string{"--socket", "/tmp/private-vpn-pro-501/helper-0123456789abcdef.sock", "--uid", "501"}); code != exitNotElevated {
 			t.Errorf("unelevated Run = %d", code)
 		}
 	}
@@ -191,7 +191,7 @@ func TestAcceptOneRefusesExistingPath(t *testing.T) {
 
 // Under pkexec, --uid must name the invoking user.
 func TestParseArgsPkexecUID(t *testing.T) {
-	path := "/tmp/privatevpn-501/helper-0123456789abcdef.sock"
+	path := "/tmp/private-vpn-pro-501/helper-0123456789abcdef.sock"
 	t.Setenv("PKEXEC_UID", "501")
 	if _, err := parseArgs([]string{"--socket", path, "--uid", "501"}); err != nil {
 		t.Fatalf("matching uid refused: %v", err)

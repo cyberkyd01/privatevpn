@@ -9,7 +9,7 @@ import (
 	"net/netip"
 	"time"
 
-	"github.com/cyberkyd01/privatevpn/core/wire"
+	"github.com/cyberkyd01/private-vpn-pro/core/wire"
 )
 
 // ErrTimeout means the gateway did not answer (wrong key, firewall, offline

@@ -10,7 +10,7 @@ import (
 
 	"github.com/skip2/go-qrcode"
 
-	"github.com/cyberkyd01/privatevpn/core/api"
+	"github.com/cyberkyd01/private-vpn-pro/core/api"
 )
 
 const prefix = "/api/v1"
@@ -96,7 +96,7 @@ func (s *Server) serveAPI(w http.ResponseWriter, r *http.Request) {
 	now := s.now()
 	sess, ok := s.auth.lookup(r, now)
 	if !ok {
-		writeErr(w, http.StatusUnauthorized, "unauthorized", "not signed in — open PrivateVPN from the tray icon")
+		writeErr(w, http.StatusUnauthorized, "unauthorized", "not signed in — open Private VPN Pro from the tray icon")
 		return
 	}
 	var body []byte
@@ -234,7 +234,7 @@ func (s *Server) handleSession(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if !s.auth.consume(req.Token, now) {
-			writeErr(w, http.StatusUnauthorized, "bad_token", "this sign-in link has expired or was already used — open PrivateVPN from the tray icon again")
+			writeErr(w, http.StatusUnauthorized, "bad_token", "this sign-in link has expired or was already used — open Private VPN Pro from the tray icon again")
 			return
 		}
 		cookie, csrf := s.auth.newSession(now)

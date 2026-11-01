@@ -11,8 +11,8 @@ import (
 
 	"golang.org/x/net/ipv4"
 
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
-	"github.com/cyberkyd01/privatevpn/core/wire"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/wire"
 )
 
 // Discovery defaults (§6.2, §7.1).
@@ -34,7 +34,7 @@ func eligible(ifi net.Interface) bool {
 		return false
 	}
 	n := strings.ToLower(ifi.Name)
-	for _, p := range []string{"pvn", "utun", "privatevpn", "wg", "tun"} {
+	for _, p := range []string{"pvp", "utun", "private vpn pro", "wg", "tun"} {
 		if strings.HasPrefix(n, p) {
 			return false
 		}

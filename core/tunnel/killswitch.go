@@ -63,7 +63,7 @@ const beaconGroup = "239.255.77.77"
 // `anchor "com.apple/*"` line. Sub-anchors run in name order; 100 puts ours
 // before Apple's (200.AirDrop, 250.ApplicationFirewall) so our `quick`
 // rules decide first.
-const pfAnchor = "com.apple/100.PrivateVPN"
+const pfAnchor = "com.apple/100.PrivateVPNPro"
 
 // LAN ranges kept reachable with AllowLAN (RFC1918, link-local, multicast,
 // broadcast). 100.64/10 (CGNAT) is deliberately not LAN.
@@ -79,7 +79,7 @@ var (
 func pfRules(ifname string, ep netip.Addr, allowLAN bool) string {
 	var b strings.Builder
 	w := func(s string) { b.WriteString(s + "\n") }
-	w("# PrivateVPN kill switch — removed by `privatevpn unblock` or Disconnect")
+	w("# Private VPN Pro kill switch — removed by `private-vpn-pro unblock` or Disconnect")
 	w("pass quick on lo0 all no state")
 	if ifname != "" {
 		w("pass quick on " + ifname + " all no state")
@@ -192,7 +192,7 @@ const (
 	linuxPrioEndpoint  = "20564" // to <endpoint> → main
 	linuxPrioMain      = "20565" // main, suppress_prefixlength 0 (LAN / on-link)
 	linuxPrioMark      = "20566" // not fwmark → table 20566 (tunnel or blackhole)
-	linuxBlackholeMetr = "20566" // blackhole default metric (the pvn0 default has 0 / 1024)
+	linuxBlackholeMetr = "20566" // blackhole default metric (the pvp0 default has 0 / 1024)
 	linuxTable         = "20566"
 )
 
@@ -212,7 +212,7 @@ func linuxEndpointRuleArgs(verb string, ep netip.Addr, priority string) []string
 }
 
 // linuxDNSRuleArgs: queries to the tunnel resolver use main's non-default
-// routes (the pvn0 subnet) ahead of the DNS blackhole.
+// routes (the pvp0 subnet) ahead of the DNS blackhole.
 func linuxDNSRuleArgs(verb string, dns netip.Addr) []string {
 	return []string{"-4", "rule", verb, "to", dns.Unmap().String() + "/32", "table", "main", "suppress_prefixlength", "0", "priority", linuxPrioDNSMain}
 }
@@ -347,8 +347,8 @@ func isMissingErr(err error) bool {
 // before the network comes up. bin is the root-owned copy of the executable.
 func systemdUnit(bin string) string {
 	return `[Unit]
-Description=PrivateVPN kill switch (blocks traffic until the VPN reconnects or the user disconnects)
-Documentation=man:privatevpn
+Description=Private VPN Pro kill switch (blocks traffic until the VPN reconnects or the user disconnects)
+Documentation=man:private-vpn-pro
 DefaultDependencies=no
 After=local-fs.target
 Before=network-pre.target shutdown.target

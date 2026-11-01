@@ -1,7 +1,7 @@
 //go:build !android
 
 // Package helper is the privileged tunnel helper (ARCHITECTURE §13.5): the
-// elevated `privatevpn tunnel-helper` process (Run) and the unprivileged
+// elevated `private-vpn-pro tunnel-helper` process (Run) and the unprivileged
 // main process's proxy to it (Client, returned by New).
 //
 // Transport: newline-delimited JSON, one object per line, at most 64 KiB per

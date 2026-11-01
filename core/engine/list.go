@@ -18,12 +18,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cyberkyd01/privatevpn/core/api"
-	"github.com/cyberkyd01/privatevpn/core/beacon"
-	"github.com/cyberkyd01/privatevpn/core/control"
-	"github.com/cyberkyd01/privatevpn/core/netkey"
-	"github.com/cyberkyd01/privatevpn/core/state"
-	"github.com/cyberkyd01/privatevpn/core/wire"
+	"github.com/cyberkyd01/private-vpn-pro/core/api"
+	"github.com/cyberkyd01/private-vpn-pro/core/beacon"
+	"github.com/cyberkyd01/private-vpn-pro/core/control"
+	"github.com/cyberkyd01/private-vpn-pro/core/netkey"
+	"github.com/cyberkyd01/private-vpn-pro/core/state"
+	"github.com/cyberkyd01/private-vpn-pro/core/wire"
 )
 
 // manualRuntime is in-memory state of a manually added gateway.
@@ -302,7 +302,7 @@ func (c *core) gatewaysUnlock(args []byte) (any, *api.Error) {
 	}
 	k, err := netkey.Parse(a.KeyText)
 	if err != nil {
-		return nil, api.Errf(api.CodeKeyFormat, http.StatusBadRequest, "that is not a valid PrivateVPN key (check for typos)")
+		return nil, api.Errf(api.CodeKeyFormat, http.StatusBadRequest, "that is not a valid Private VPN Pro key (check for typos)")
 	}
 	it, aerr := c.findItem(a.GatewayID)
 	if aerr != nil {

@@ -1,4 +1,4 @@
-// Package wire implements the PrivateVPN datagram formats (ARCHITECTURE §6).
+// Package wire implements the Private VPN Pro datagram formats (ARCHITECTURE §6).
 //
 // Every control message is one UDP datagram:
 //

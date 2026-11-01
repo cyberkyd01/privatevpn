@@ -13,7 +13,7 @@ import (
 	"golang.zx2c4.com/wireguard/conn/bindtest"
 	"golang.zx2c4.com/wireguard/tun/tuntest"
 
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
 )
 
 // TestDeviceUAPI feeds our UAPI text to the real wireguard-go parser on an

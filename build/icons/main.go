@@ -1,4 +1,4 @@
-// Command icons generates every PrivateVPN icon from code: the five tray
+// Command icons generates every Private VPN Pro icon from code: the five tray
 // states (idle, gateway on, connected, both, warning) in colour (PNG, ICO) and as
 // macOS template images, plus the application icon for Windows (go-winres
 // input, installer .ico), Linux (.desktop) and macOS (.icns).

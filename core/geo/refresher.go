@@ -9,14 +9,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
 )
 
 // Options configures a Refresher.
 type Options struct {
 	Enabled   func() bool    // nil = enabled; off → no requests, Source "none"
 	Manual    func() *Manual // nil = none; overrides location fields, public IP still looked up
-	UserAgent string         // "PrivateVPN/<version>"
+	UserAgent string         // "PrivateVPNPro/<version>"
 	Client    *http.Client   // nil = NewHTTPClient(nil)
 	Log       *eventlog.Log  // nil = no logging
 	OnUpdate  func()         // called after each refresh (success or failure)

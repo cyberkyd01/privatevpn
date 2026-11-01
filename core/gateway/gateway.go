@@ -20,9 +20,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
-	"github.com/cyberkyd01/privatevpn/core/gwstack"
-	"github.com/cyberkyd01/privatevpn/core/netbind"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/gwstack"
+	"github.com/cyberkyd01/private-vpn-pro/core/netbind"
 	"golang.zx2c4.com/wireguard/conn"
 	"golang.zx2c4.com/wireguard/device"
 )
@@ -83,10 +83,10 @@ var privateRanges = []netip.Prefix{
 
 var cgnat = netip.MustParsePrefix("100.64.0.0/10")
 
-// DeriveSubnet returns 10.77.H.0/24 with H = 1 + (SHA-256("pvn1 subnet" ||
+// DeriveSubnet returns 10.77.H.0/24 with H = 1 + (SHA-256("pvp1 subnet" ||
 // pub)[0] mod 254) (§7.2).
 func DeriveSubnet(gwPub [32]byte) netip.Prefix {
-	h := sha256.Sum256(append([]byte("pvn1 subnet"), gwPub[:]...))
+	h := sha256.Sum256(append([]byte("pvp1 subnet"), gwPub[:]...))
 	return netip.PrefixFrom(netip.AddrFrom4([4]byte{10, 77, 1 + h[0]%254, 0}), 24)
 }
 

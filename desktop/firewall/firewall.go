@@ -3,9 +3,9 @@
 // Package firewall manages the Windows Defender Firewall inbound rule that
 // lets gateway mode receive UDP (ARCHITECTURE §13.6):
 //
-//	netsh advfirewall firewall add rule name="PrivateVPN" dir=in action=allow
+//	netsh advfirewall firewall add rule name="Private VPN Pro" dir=in action=allow
 //	      program="<exe path>" protocol=UDP profile=private,domain enable=yes
-//	netsh advfirewall firewall add rule name="PrivateVPN (public, local subnet)"
+//	netsh advfirewall firewall add rule name="Private VPN Pro (public, local subnet)"
 //	      … profile=public remoteip=localsubnet …
 //
 // Both rules are program-scoped and UDP only. Windows classifies most home
@@ -25,8 +25,8 @@ import (
 
 // Rule display names.
 const (
-	RuleName       = "PrivateVPN"
-	RuleNamePublic = "PrivateVPN (public, local subnet)"
+	RuleName       = "Private VPN Pro"
+	RuleNamePublic = "Private VPN Pro (public, local subnet)"
 )
 
 var ruleNames = []string{RuleName, RuleNamePublic}

@@ -3,7 +3,7 @@ package gateway
 import (
 	"time"
 
-	"github.com/cyberkyd01/privatevpn/core/gwstack"
+	"github.com/cyberkyd01/private-vpn-pro/core/gwstack"
 )
 
 // Limits (ARCHITECTURE §8.7) and lease timing (§8.2).

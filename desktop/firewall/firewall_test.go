@@ -8,13 +8,13 @@ import (
 )
 
 func TestNetshArgs(t *testing.T) {
-	exe := `C:\Program Files\PrivateVPN\privatevpn.exe`
+	exe := `C:\Program Files\Private VPN Pro\private-vpn-pro.exe`
 	rules := addArgs(exe)
 	if len(rules) != 2 {
 		t.Fatalf("want 2 rules, got %d", len(rules))
 	}
 	got := strings.Join(rules[0], "|")
-	want := `advfirewall|firewall|add|rule|name=PrivateVPN|dir=in|action=allow|program=C:\Program Files\PrivateVPN\privatevpn.exe|protocol=UDP|profile=private,domain|enable=yes`
+	want := `advfirewall|firewall|add|rule|name=Private VPN Pro|dir=in|action=allow|program=C:\Program Files\Private VPN Pro\private-vpn-pro.exe|protocol=UDP|profile=private,domain|enable=yes`
 	if got != want {
 		t.Errorf("add args\n got %s\nwant %s", got, want)
 	}
@@ -23,23 +23,23 @@ func TestNetshArgs(t *testing.T) {
 		!strings.Contains(pub, "program=") || !strings.Contains(pub, "protocol=UDP") {
 		t.Errorf("public rule must be program-scoped UDP limited to the local subnet: %s", pub)
 	}
-	if got := strings.Join(deleteArgs(RuleName), " "); got != "advfirewall firewall delete rule name=PrivateVPN" {
+	if got := strings.Join(deleteArgs(RuleName), " "); got != "advfirewall firewall delete rule name=Private VPN Pro" {
 		t.Error(got)
 	}
-	if got := strings.Join(showArgs(RuleName), " "); got != "advfirewall firewall show rule name=PrivateVPN verbose" {
+	if got := strings.Join(showArgs(RuleName), " "); got != "advfirewall firewall show rule name=Private VPN Pro verbose" {
 		t.Error(got)
 	}
 }
 
 func TestRuleCoversProgram(t *testing.T) {
-	out := []byte("Rule Name: PrivateVPN\r\n----\r\nEnabled: Yes\r\nDirection: In\r\nProfiles: Domain,Private\r\nProgram: C:\\Users\\Al\\PrivateVPN\\privatevpn.exe\r\nAction: Allow\r\n")
-	if !ruleCoversProgram(out, `c:\users\al\privatevpn\PRIVATEVPN.exe`) {
+	out := []byte("Rule Name: Private VPN Pro\r\n----\r\nEnabled: Yes\r\nDirection: In\r\nProfiles: Domain,Private\r\nProgram: C:\\Users\\Al\\Private VPN Pro\\private-vpn-pro.exe\r\nAction: Allow\r\n")
+	if !ruleCoversProgram(out, `c:\users\al\private vpn pro\PRIVATE-VPN-PRO.exe`) {
 		t.Error("case-insensitive match")
 	}
-	if ruleCoversProgram(out, `C:\Other\privatevpn.exe`) {
+	if ruleCoversProgram(out, `C:\Other\private-vpn-pro.exe`) {
 		t.Error("a rule for another path is stale")
 	}
-	if !ruleCoversProgram(out, `C:\Users\Zoë\privatevpn.exe`) {
+	if !ruleCoversProgram(out, `C:\Users\Zoë\private-vpn-pro.exe`) {
 		t.Error("non-ASCII paths accept any rule with our name")
 	}
 }
@@ -50,7 +50,7 @@ func TestValidExe(t *testing.T) {
 			t.Errorf("%q accepted", bad)
 		}
 	}
-	if !validExe(`C:\Program Files\PrivateVPN\privatevpn.exe`) {
+	if !validExe(`C:\Program Files\Private VPN Pro\private-vpn-pro.exe`) {
 		t.Error("normal path rejected")
 	}
 }

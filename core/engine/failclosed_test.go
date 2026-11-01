@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
-	"github.com/cyberkyd01/privatevpn/core/tunnel"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/tunnel"
 )
 
 // pair starts a gateway engine and a client engine (using tun) that holds

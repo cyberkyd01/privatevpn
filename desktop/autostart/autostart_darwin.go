@@ -12,7 +12,7 @@ func plistPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, "Library", "LaunchAgents", "app.privatevpn.plist"), nil
+	return filepath.Join(home, "Library", "LaunchAgents", "app.privatevpnpro.plist"), nil
 }
 
 func set(exe string, on bool) error {

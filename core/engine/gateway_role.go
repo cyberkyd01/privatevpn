@@ -16,16 +16,16 @@ import (
 	"time"
 	_ "time/tzdata" // manual time zones on Windows need the IANA database
 
-	"github.com/cyberkyd01/privatevpn/core/api"
-	"github.com/cyberkyd01/privatevpn/core/beacon"
-	"github.com/cyberkyd01/privatevpn/core/control"
-	"github.com/cyberkyd01/privatevpn/core/gateway"
-	"github.com/cyberkyd01/privatevpn/core/geo"
-	"github.com/cyberkyd01/privatevpn/core/netbind"
-	"github.com/cyberkyd01/privatevpn/core/netkey"
-	"github.com/cyberkyd01/privatevpn/core/state"
-	"github.com/cyberkyd01/privatevpn/core/sysinfo"
-	"github.com/cyberkyd01/privatevpn/core/wire"
+	"github.com/cyberkyd01/private-vpn-pro/core/api"
+	"github.com/cyberkyd01/private-vpn-pro/core/beacon"
+	"github.com/cyberkyd01/private-vpn-pro/core/control"
+	"github.com/cyberkyd01/private-vpn-pro/core/gateway"
+	"github.com/cyberkyd01/private-vpn-pro/core/geo"
+	"github.com/cyberkyd01/private-vpn-pro/core/netbind"
+	"github.com/cyberkyd01/private-vpn-pro/core/netkey"
+	"github.com/cyberkyd01/private-vpn-pro/core/state"
+	"github.com/cyberkyd01/private-vpn-pro/core/sysinfo"
+	"github.com/cyberkyd01/private-vpn-pro/core/wire"
 )
 
 const gatewayMTU = 1280
@@ -138,7 +138,7 @@ func (c *core) gatewayEnableLocked() *api.Error {
 		// Without the mark every forwarded flow and off-LAN reply would
 		// enter the upstream tunnel or fail closed (§7.4, D12).
 		return api.Errf(api.CodeConflict, http.StatusConflict,
-			"dual role on Linux needs CAP_NET_ADMIN (setcap cap_net_admin+ep privatevpn); disconnect before enabling gateway mode")
+			"dual role on Linux needs CAP_NET_ADMIN (setcap cap_net_admin+ep private-vpn-pro); disconnect before enabling gateway mode")
 	}
 	k, aerr := c.ensureNetwork()
 	if aerr != nil {
@@ -185,7 +185,7 @@ func (c *core) gatewayEnableLocked() *api.Error {
 	r.geo = geo.NewRefresher(geo.Options{
 		Enabled:   func() bool { s := c.store.Get(); return s.Gateway != nil && s.Gateway.Geo.Enabled },
 		Manual:    c.geoManual,
-		UserAgent: "PrivateVPN/" + c.e.opts.AppVersion,
+		UserAgent: "PrivateVPNPro/" + c.e.opts.AppVersion,
 		Client:    geo.NewHTTPClient(netbind.Dialer(10 * time.Second).DialContext),
 		Log:       c.log,
 		OnUpdate:  c.emitStatus,

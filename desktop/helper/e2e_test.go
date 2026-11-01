@@ -17,8 +17,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
-	"github.com/cyberkyd01/privatevpn/core/tunnel"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/tunnel"
 )
 
 // fakeTunnel records what the helper asks of the native tunnel. It mirrors

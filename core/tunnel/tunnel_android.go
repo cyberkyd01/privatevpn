@@ -12,7 +12,7 @@ import (
 	"golang.org/x/sys/unix"
 	"golang.zx2c4.com/wireguard/tun"
 
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
 )
 
 // Android client tunnel (§9.5). Kotlin's VpnService.Builder creates the

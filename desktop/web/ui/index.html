@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <meta name="referrer" content="no-referrer">
-  <title>PrivateVPN</title>
+  <title>Private VPN Pro</title>
   <link rel="icon" href="/icons.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/app.css">
   <script src="/app.js" defer></script>
@@ -15,7 +15,7 @@
   <nav class="sidebar" aria-label="Main">
     <div class="brand">
       <svg class="brand-mark" aria-hidden="true"><use href="/icons.svg#i-shield"></use></svg>
-      <span>PrivateVPN</span>
+      <span>Private VPN Pro</span>
     </div>
     <ul class="nav">
       <li><button type="button" class="nav-item" data-view="gateways"><svg class="icon" aria-hidden="true"><use href="/icons.svg#i-gateways"></use></svg><span>Gateways</span></button></li>
@@ -41,7 +41,7 @@
       <header class="view-head">
         <div>
           <h1>Gateways</h1>
-          <p class="lead">PrivateVPN gateways on your network. A locked gateway needs its network key once.</p>
+          <p class="lead">Private VPN Pro gateways on your network. A locked gateway needs its network key once.</p>
         </div>
         <div class="head-actions">
           <button type="button" class="btn" id="btn-add-manual"><svg class="icon" aria-hidden="true"><use href="/icons.svg#i-plus"></use></svg><span>Add gateway by address</span></button>
@@ -95,7 +95,7 @@
 
       <form id="form-add-key" class="card form-card" hidden novalidate>
         <h2>Add a network key</h2>
-        <label class="field"><span>Network key</span><textarea name="key_text" rows="2" class="mono" placeholder="PVN1-XXXXX-XXXXX-…" autocomplete="off" spellcheck="false" required></textarea></label>
+        <label class="field"><span>Network key</span><textarea name="key_text" rows="2" class="mono" placeholder="PVP1-XXXXX-XXXXX-…" autocomplete="off" spellcheck="false" required></textarea></label>
         <label class="field"><span>Label (optional)</span><input name="label" maxlength="32" placeholder="Alice's network" autocomplete="off"></label>
         <p class="form-error" hidden></p>
         <div class="form-actions">
@@ -159,7 +159,7 @@
           <label class="field grow"><span>Name</span><input name="device_name" maxlength="32" autocomplete="off" spellcheck="false" required></label>
           <button type="submit" class="btn">Save</button>
         </form>
-        <p class="muted small">This name is visible to every PrivateVPN device on the LAN, even without the key — along with the OS, app version and the number of connected clients. Avoid using a person's name.</p>
+        <p class="muted small">This name is visible to every Private VPN Pro device on the LAN, even without the key — along with the OS, app version and the number of connected clients. Avoid using a person's name.</p>
       </div>
 
       <div class="card">
@@ -248,7 +248,7 @@
         <div class="setting-row">
           <div>
             <strong>Kill switch</strong>
-            <p class="muted small">Blocks all Internet traffic outside the VPN from the moment you connect until you choose Disconnect — even if the gateway goes offline or PrivateVPN crashes. Restarting the computer clears it (with “Reconnect automatically after restart” on, PrivateVPN blocks again at login and reconnects).</p>
+            <p class="muted small">Blocks all Internet traffic outside the VPN from the moment you connect until you choose Disconnect — even if the gateway goes offline or Private VPN Pro crashes. Restarting the computer clears it (with “Reconnect automatically after restart” on, Private VPN Pro blocks again at login and reconnects).</p>
           </div>
           <label class="switch"><input type="checkbox" id="set-killswitch" role="switch" aria-label="Kill switch"><span class="slider" aria-hidden="true"></span></label>
         </div>
@@ -262,9 +262,9 @@
         <div class="setting-row">
           <div>
             <strong>Reconnect automatically after restart</strong>
-            <p class="muted small">If you were connected when the computer restarted, crashed or logged off, PrivateVPN reconnects to the same gateway when it starts again. Choosing Disconnect or Quit stops this.</p>
-            <p class="muted small" id="set-ar-admin">After a restart your computer stays blocked until PrivateVPN reconnects; Windows/macOS/Linux will ask for administrator approval at login.</p>
-            <p class="small form-error" id="set-ar-hint" hidden>“Start PrivateVPN when you log in” is off, so this happens only when you start PrivateVPN yourself.</p>
+            <p class="muted small">If you were connected when the computer restarted, crashed or logged off, Private VPN Pro reconnects to the same gateway when it starts again. Choosing Disconnect or Quit stops this.</p>
+            <p class="muted small" id="set-ar-admin">After a restart your computer stays blocked until Private VPN Pro reconnects; Windows/macOS/Linux will ask for administrator approval at login.</p>
+            <p class="small form-error" id="set-ar-hint" hidden>“Start Private VPN Pro when you log in” is off, so this happens only when you start Private VPN Pro yourself.</p>
           </div>
           <label class="switch"><input type="checkbox" id="set-autoreconnect" role="switch" aria-label="Reconnect automatically after restart"><span class="slider" aria-hidden="true"></span></label>
         </div>
@@ -277,17 +277,17 @@
           <label class="field grow"><span>Device name</span><input name="device_name" maxlength="32" autocomplete="off" spellcheck="false" required></label>
           <button type="submit" class="btn">Save</button>
         </form>
-        <p class="muted small">Used as the gateway name and visible to every PrivateVPN device on the LAN while gateway mode is on.</p>
+        <p class="muted small">Used as the gateway name and visible to every Private VPN Pro device on the LAN while gateway mode is on.</p>
       </div>
 
       <div class="card">
         <h2>App</h2>
         <div class="setting-row">
           <div>
-            <strong>Start PrivateVPN when you log in</strong>
-            <p class="muted small">Starts PrivateVPN in the tray when you sign in, restores gateway mode if it was on and — with “Reconnect automatically after restart” — reconnects the VPN you were using.</p>
+            <strong>Start Private VPN Pro when you log in</strong>
+            <p class="muted small">Starts Private VPN Pro in the tray when you sign in, restores gateway mode if it was on and — with “Reconnect automatically after restart” — reconnects the VPN you were using.</p>
           </div>
-          <label class="switch"><input type="checkbox" id="set-autostart" role="switch" aria-label="Start PrivateVPN when you log in"><span class="slider" aria-hidden="true"></span></label>
+          <label class="switch"><input type="checkbox" id="set-autostart" role="switch" aria-label="Start Private VPN Pro when you log in"><span class="slider" aria-hidden="true"></span></label>
         </div>
         <div class="setting-row">
           <div>
@@ -303,7 +303,7 @@
         <form id="form-ui-port" class="setting-row" novalidate>
           <div>
             <strong>Local web UI port</strong>
-            <p class="muted small">127.0.0.1 only. Takes effect after PrivateVPN restarts; 47772–47780 are used if it is busy.</p>
+            <p class="muted small">127.0.0.1 only. Takes effect after Private VPN Pro restarts; 47772–47780 are used if it is busy.</p>
           </div>
           <div class="inline-form">
             <input name="port" type="number" min="1024" max="65535" placeholder="47771" class="input narrow" aria-label="Local web UI port">
@@ -315,10 +315,10 @@
       <div class="card">
         <h2>About</h2>
         <dl class="kv" id="about"></dl>
-        <p class="muted small">PrivateVPN keeps no logs on disk and stores nothing about the devices that connect through your gateway.</p>
+        <p class="muted small">Private VPN Pro keeps no logs on disk and stores nothing about the devices that connect through your gateway.</p>
         <div class="form-actions start">
           <button type="button" class="btn" id="btn-signout"><svg class="icon" aria-hidden="true"><use href="/icons.svg#i-signout"></use></svg><span>Sign out of this browser</span></button>
-          <button type="button" class="btn danger" id="btn-quit"><svg class="icon" aria-hidden="true"><use href="/icons.svg#i-power"></use></svg><span>Quit PrivateVPN</span></button>
+          <button type="button" class="btn danger" id="btn-quit"><svg class="icon" aria-hidden="true"><use href="/icons.svg#i-power"></use></svg><span>Quit Private VPN Pro</span></button>
         </div>
       </div>
     </section>

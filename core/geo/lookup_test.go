@@ -156,7 +156,7 @@ func v4Only(ctx context.Context, network, addr string) (net.Conn, error) {
 	return d.DialContext(ctx, "tcp", addr)
 }
 
-const ua = "PrivateVPN/1.0.0"
+const ua = "PrivateVPNPro/1.0.0"
 
 func lookup(t *testing.T, c *http.Client) (Result, error) {
 	t.Helper()

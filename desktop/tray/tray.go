@@ -1,7 +1,7 @@
 //go:build !android
 
 // Package tray is the desktop tray icon and menu (ARCHITECTURE §13.1), built
-// on fyne.io/systray. There is no application window: "Open PrivateVPN"
+// on fyne.io/systray. There is no application window: "Open Private VPN Pro"
 // mints a single-use login URL and opens the web UI in the browser.
 package tray
 
@@ -16,7 +16,7 @@ import (
 
 	"fyne.io/systray"
 
-	"github.com/cyberkyd01/privatevpn/core/api"
+	"github.com/cyberkyd01/private-vpn-pro/core/api"
 )
 
 // Backend is the engine as seen by the tray (core/engine.Engine satisfies it).
@@ -96,12 +96,12 @@ type tray struct {
 func (t *tray) onReady() {
 	t.applied = map[*systray.MenuItem]*itemState{}
 	t.setIcon(iconIdle)
-	systray.SetTooltip("PrivateVPN")
+	systray.SetTooltip("Private VPN Pro")
 
-	t.open = systray.AddMenuItem("Open PrivateVPN", "Open PrivateVPN in your browser")
+	t.open = systray.AddMenuItem("Open Private VPN Pro", "Open Private VPN Pro in your browser")
 	t.status = systray.AddMenuItem("Starting…", "")
 	t.status.Disable()
-	t.problems = systray.AddMenuItem("Problems", "Open PrivateVPN to see every problem and what to do")
+	t.problems = systray.AddMenuItem("Problems", "Open Private VPN Pro to see every problem and what to do")
 	t.problems.Hide()
 	t.gateway = systray.AddMenuItemCheckbox("Gateway mode",
 		"Share this computer's Internet connection. Members' traffic will exit from your Internet connection and carry your public IP.", false)
@@ -113,14 +113,14 @@ func (t *tray) onReady() {
 		it.Hide()
 		t.slots = append(t.slots, it)
 	}
-	t.more = t.connect.AddSubMenuItem("More…", "Open PrivateVPN to see every gateway")
+	t.more = t.connect.AddSubMenuItem("More…", "Open Private VPN Pro to see every gateway")
 	t.more.Hide()
 	t.disconnect = systray.AddMenuItem("Disconnect", "Stop using the VPN and remove the kill switch's block (may ask for administrator approval)")
 	t.disconnect.Disable()
 	systray.AddSeparator()
 	t.copyKey = systray.AddMenuItem("Copy my gateway key", "Copy the network key this gateway serves to the clipboard")
 	t.copyKey.Hide()
-	t.quit = systray.AddMenuItem("Quit", "Disconnect, remove the kill switch's block and quit PrivateVPN")
+	t.quit = systray.AddMenuItem("Quit", "Disconnect, remove the kill switch's block and quit Private VPN Pro")
 
 	if runtime.GOOS == "windows" {
 		// Windows convention: left click opens the app, right click the menu.
@@ -282,7 +282,7 @@ func (t *tray) render() {
 		pl = problemLine(st)
 	}
 	t.apply(t.problems, itemState{title: menuText(goos, pl), shown: pl != "", enabled: true})
-	tip := "PrivateVPN — " + line
+	tip := "Private VPN Pro — " + line
 	if have && st.Problems > 0 && flash == "" {
 		tip += " (" + strconv.Itoa(st.Problems) + " " + pluralProblems(st.Problems) + ")"
 	}
@@ -307,7 +307,7 @@ func (t *tray) render() {
 	}
 	moreTitle := "More…"
 	if more > 0 {
-		moreTitle = "More… (" + strconv.Itoa(more) + " in PrivateVPN)"
+		moreTitle = "More… (" + strconv.Itoa(more) + " in Private VPN Pro)"
 	}
 	t.apply(t.more, itemState{title: moreTitle, shown: more > 0, enabled: true})
 }

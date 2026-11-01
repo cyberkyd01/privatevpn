@@ -27,34 +27,34 @@ vet:
 	GOOS=linux go vet ./...
 
 desktop:
-	go run ./cmd/privatevpn
+	go run ./cmd/private-vpn-pro
 
 windows:
-	cd cmd/privatevpn && go tool go-winres make --arch amd64,arm64 --in ../../build/windows/winres.json
+	cd cmd/private-vpn-pro && go tool go-winres make --arch amd64,arm64 --in ../../build/windows/winres.json
 	for arch in amd64 arm64; do \
-	  CGO_ENABLED=0 GOOS=windows GOARCH=$$arch go build $(GOFLAGS) -ldflags "$(LDFLAGS) -H windowsgui" -o $(DIST)/windows-$$arch/privatevpn.exe ./cmd/privatevpn && \
+	  CGO_ENABLED=0 GOOS=windows GOARCH=$$arch go build $(GOFLAGS) -ldflags "$(LDFLAGS) -H windowsgui" -o $(DIST)/windows-$$arch/private-vpn-pro.exe ./cmd/private-vpn-pro && \
 	  bash build/windows/fetch-wintun.sh $$arch $(DIST)/windows-$$arch ; \
 	done
 
 # Needs makensis (NSIS 3): apt install nsis / brew install makensis.
 windows-installer: windows
 	for arch in amd64 arm64; do \
-	  bash build/windows/make-installer.sh $$arch $(VERSION) $(DIST)/windows-$$arch $(DIST)/privatevpn-windows-$$arch-setup.exe ; \
+	  bash build/windows/make-installer.sh $$arch $(VERSION) $(DIST)/windows-$$arch $(DIST)/private-vpn-pro-windows-$$arch-setup.exe ; \
 	done
 
 linux:
 	for arch in amd64 arm64; do \
-	  CGO_ENABLED=0 GOOS=linux GOARCH=$$arch go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(DIST)/linux-$$arch/privatevpn ./cmd/privatevpn ; \
+	  CGO_ENABLED=0 GOOS=linux GOARCH=$$arch go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(DIST)/linux-$$arch/private-vpn-pro ./cmd/private-vpn-pro ; \
 	done
 
 macos:
-	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(DIST)/macos/privatevpn-arm64 ./cmd/privatevpn
-	CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(DIST)/macos/privatevpn-amd64 ./cmd/privatevpn
-	lipo -create -output $(DIST)/macos/privatevpn $(DIST)/macos/privatevpn-arm64 $(DIST)/macos/privatevpn-amd64
-	bash build/macos/make-app.sh $(DIST)/macos/privatevpn $(VERSION) $(DIST)/macos
+	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(DIST)/macos/private-vpn-pro-arm64 ./cmd/private-vpn-pro
+	CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(DIST)/macos/private-vpn-pro-amd64 ./cmd/private-vpn-pro
+	lipo -create -output $(DIST)/macos/private-vpn-pro $(DIST)/macos/private-vpn-pro-arm64 $(DIST)/macos/private-vpn-pro-amd64
+	bash build/macos/make-app.sh $(DIST)/macos/private-vpn-pro $(VERSION) $(DIST)/macos
 
 dmg: macos
-	bash build/macos/make-dmg.sh $(DIST)/macos/PrivateVPN.app $(DIST)/PrivateVPN-macos-universal.dmg
+	bash build/macos/make-dmg.sh "$(DIST)/macos/Private VPN Pro.app" $(DIST)/private-vpn-pro-macos-universal.dmg
 
 # gomobile bind looks up gobind on PATH: build the go.mod-pinned one into bin/ (git-ignored)
 # instead of requiring `gomobile init` / a global install.
@@ -65,7 +65,7 @@ core-aar:
 	go build -o "$(GOBIND_DIR)/gobind" golang.org/x/mobile/cmd/gobind
 	PATH="$(GOBIND_DIR):$$PATH" ANDROID_HOME="$(ANDROID_HOME)" ANDROID_NDK_HOME="$(ANDROID_NDK_HOME)" JAVA_HOME="$(ANDROID_JAVA_HOME)" \
 	  go tool gomobile bind -target android/arm64,android/arm,android/amd64 -androidapi 26 \
-	  -javapkg app.privatevpn -trimpath -ldflags "$(LDFLAGS)" -o android/app/libs/core.aar ./mobile
+	  -javapkg app.privatevpnpro -trimpath -ldflags "$(LDFLAGS)" -o android/app/libs/core.aar ./mobile
 
 # Signed when ANDROID_KEYSTORE_FILE (+ _PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD) is set,
 # otherwise Gradle produces app-release-unsigned.apk.
@@ -73,13 +73,13 @@ android: core-aar
 	cd android && JAVA_HOME="$(ANDROID_JAVA_HOME)" ANDROID_HOME="$(ANDROID_HOME)" ./gradlew --no-daemon assembleRelease $(GRADLE_VERSION_ARG)
 	mkdir -p $(DIST)/android
 	if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then \
-	  cp android/app/build/outputs/apk/release/app-release.apk $(DIST)/android/privatevpn-android.apk ; \
+	  cp android/app/build/outputs/apk/release/app-release.apk $(DIST)/android/private-vpn-pro-android.apk ; \
 	else \
-	  cp android/app/build/outputs/apk/release/app-release-unsigned.apk $(DIST)/android/privatevpn-android-unsigned.apk ; \
+	  cp android/app/build/outputs/apk/release/app-release-unsigned.apk $(DIST)/android/private-vpn-pro-android-unsigned.apk ; \
 	fi
 
 android-debug: core-aar
 	cd android && JAVA_HOME="$(ANDROID_JAVA_HOME)" ANDROID_HOME="$(ANDROID_HOME)" ./gradlew --no-daemon assembleDebug $(GRADLE_VERSION_ARG)
 
 clean:
-	rm -rf $(DIST) android/app/libs android/app/build cmd/privatevpn/*.syso
+	rm -rf $(DIST) android/app/libs android/app/build cmd/private-vpn-pro/*.syso

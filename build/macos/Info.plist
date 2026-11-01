@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleName</key>
-	<string>PrivateVPN</string>
+	<string>Private VPN Pro</string>
 	<key>CFBundleDisplayName</key>
-	<string>PrivateVPN</string>
+	<string>Private VPN Pro</string>
 	<key>CFBundleIdentifier</key>
-	<string>app.privatevpn</string>
+	<string>app.privatevpnpro</string>
 	<key>CFBundleExecutable</key>
-	<string>privatevpn</string>
+	<string>private-vpn-pro</string>
 	<key>CFBundleIconFile</key>
 	<string>icon</string>
 	<key>CFBundlePackageType</key>

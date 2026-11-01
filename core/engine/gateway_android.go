@@ -9,9 +9,9 @@ import (
 	"net/netip"
 	"sync/atomic"
 
-	"github.com/cyberkyd01/privatevpn/core/api"
-	"github.com/cyberkyd01/privatevpn/core/state"
-	"github.com/cyberkyd01/privatevpn/core/sysinfo"
+	"github.com/cyberkyd01/private-vpn-pro/core/api"
+	"github.com/cyberkyd01/private-vpn-pro/core/state"
+	"github.com/cyberkyd01/private-vpn-pro/core/sysinfo"
 )
 
 // Android is client-only (ARCHITECTURE D26): no gateway role exists.

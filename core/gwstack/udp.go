@@ -5,7 +5,7 @@ import (
 	"net"
 	"net/netip"
 
-	"github.com/cyberkyd01/privatevpn/core/netbind"
+	"github.com/cyberkyd01/private-vpn-pro/core/netbind"
 	"gvisor.dev/gvisor/pkg/tcpip/adapters/gonet"
 	"gvisor.dev/gvisor/pkg/tcpip/transport/udp"
 	"gvisor.dev/gvisor/pkg/waiter"

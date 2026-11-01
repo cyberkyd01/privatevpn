@@ -16,7 +16,7 @@ package tunnel
 //   - kill switch: a non-dynamic session adding PERSISTENT provider,
 //     sublayer and filters with fixed keys. They survive the process, BFE
 //     restarts and reboots; any later elevated process deletes them by key
-//     (Down, `privatevpn unblock`). Replacement happens inside one
+//     (Down, `private-vpn-pro unblock`). Replacement happens inside one
 //     transaction, so there is never a moment without a block.
 //   - DNS-only leak protection (kill switch off): a dynamic session whose
 //     filters vanish with the helper.
@@ -237,13 +237,13 @@ type wfpEngine struct {
 }
 
 func openWFPEngine(dynamic bool) (*wfpEngine, error) {
-	name, err := windows.UTF16PtrFromString("PrivateVPN")
+	name, err := windows.UTF16PtrFromString("Private VPN Pro")
 	if err != nil {
 		return nil, err
 	}
-	desc := "PrivateVPN kill switch"
+	desc := "Private VPN Pro kill switch"
 	if dynamic {
-		desc = "PrivateVPN DNS leak protection (dynamic)"
+		desc = "Private VPN Pro DNS leak protection (dynamic)"
 	}
 	desc16, err := windows.UTF16PtrFromString(desc)
 	if err != nil {
@@ -459,11 +459,11 @@ func installPersistentBlock(spec wfpSpec) error {
 	defer a.free()
 	providerKey := windows.GUID(wfpProviderKey)
 	sublayerKey := windows.GUID(wfpSublayerKey)
-	name, err := a.utf16("PrivateVPN")
+	name, err := a.utf16("Private VPN Pro")
 	if err != nil {
 		return err
 	}
-	desc, err := a.utf16("PrivateVPN kill switch (removed by Disconnect or `privatevpn unblock`)")
+	desc, err := a.utf16("Private VPN Pro kill switch (removed by Disconnect or `private-vpn-pro unblock`)")
 	if err != nil {
 		return err
 	}
@@ -543,7 +543,7 @@ type dnsBlocker struct {
 // newDNSBlocker blocks DNS (UDP/TCP port 53, IPv4 and IPv6) except to
 // allowed (the tunnel resolver) and except for our own executable — the
 // dual-role gateway's DNS forwarder in the main process queries the saved
-// physical resolvers (§7.4), and it is the same privatevpn.exe.
+// physical resolvers (§7.4), and it is the same private-vpn-pro.exe.
 func newDNSBlocker(allowed []netip.Addr) (*dnsBlocker, error) {
 	plan := buildWFPFilters(wfpSpec{DNS: allowed})
 	e, err := openWFPEngine(true)
@@ -557,7 +557,7 @@ func newDNSBlocker(allowed []netip.Addr) (*dnsBlocker, error) {
 		e.close()
 		return nil, err
 	}
-	name, err := a.utf16("PrivateVPN DNS leak protection")
+	name, err := a.utf16("Private VPN Pro DNS leak protection")
 	if err != nil {
 		e.close()
 		return nil, err

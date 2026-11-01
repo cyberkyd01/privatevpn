@@ -3,8 +3,8 @@
 package mobile
 
 import (
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
-	"github.com/cyberkyd01/privatevpn/core/tunnel"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/tunnel"
 )
 
 // newTunnel wires the VpnService-backed tunnel (§9.5): Go asks Kotlin for

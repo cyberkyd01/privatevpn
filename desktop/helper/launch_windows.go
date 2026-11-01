@@ -18,8 +18,8 @@ import (
 	"github.com/Microsoft/go-winio"
 	"golang.org/x/sys/windows"
 
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
-	"github.com/cyberkyd01/privatevpn/core/tunnel"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/tunnel"
 )
 
 func newPlatform(exe, version string, log *eventlog.Log) tunnel.Tunnel {
@@ -160,7 +160,7 @@ func launchWindows(ctx context.Context, exe string) (io.ReadWriteCloser, process
 	if err != nil {
 		return nil, nil, err
 	}
-	name := "privatevpn-helper-" + hexName
+	name := "private-vpn-pro-helper-" + hexName
 	sid, err := currentUserSID()
 	if err != nil || !validSID(sid) {
 		return nil, nil, errors.New("helper: cannot determine the user SID")

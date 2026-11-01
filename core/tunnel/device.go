@@ -13,7 +13,7 @@ import (
 	"golang.zx2c4.com/wireguard/device"
 	"golang.zx2c4.com/wireguard/tun"
 
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
 )
 
 // wgDevice is the client WireGuard device shared by every native tunnel.

@@ -145,8 +145,8 @@ var testIfaces = []net.Interface{
 	{Index: 2, Name: "en0", Flags: net.FlagUp | net.FlagRunning | net.FlagBroadcast},
 	{Index: 3, Name: "en1", Flags: net.FlagBroadcast}, // down
 	{Index: 4, Name: "utun4", Flags: net.FlagUp | net.FlagPointToPoint},
-	{Index: 5, Name: "pvn0", Flags: net.FlagUp},
-	{Index: 6, Name: "PrivateVPN", Flags: net.FlagUp},
+	{Index: 5, Name: "pvp0", Flags: net.FlagUp},
+	{Index: 6, Name: "Private VPN Pro", Flags: net.FlagUp},
 	{Index: 7, Name: "wlan0", Flags: net.FlagUp},
 	{Index: 8, Name: "ppp0", Flags: net.FlagUp | net.FlagPointToPoint},
 	{Index: 9, Name: "Ethernet 2", Flags: net.FlagUp}, // reported virtual by the OS
@@ -158,8 +158,8 @@ var testAddrs = map[string][]net.Addr{
 	"en0":        {ipnet("192.168.1.10/24"), ipnet("169.254.3.4/16"), ipnet("fe80::1/64"), ipnet("2001:db8::10/64"), ipnet("::ffff:192.168.1.11/120")},
 	"en1":        {ipnet("10.1.1.1/24")},
 	"utun4":      {ipnet("10.77.42.2/24")},
-	"pvn0":       {ipnet("10.77.43.1/24")},
-	"PrivateVPN": {ipnet("10.77.44.2/24")},
+	"pvp0":       {ipnet("10.77.43.1/24")},
+	"Private VPN Pro": {ipnet("10.77.44.2/24")},
 	"wlan0":      {ipnet("100.64.0.5/10"), ipnet("192.168.1.10/24")},
 	"ppp0":       {ipnet("198.51.100.1/32")},
 	"Ethernet 2": {ipnet("172.20.0.1/20")},
@@ -196,12 +196,12 @@ func TestCollectLANIPv4sCap(t *testing.T) {
 }
 
 func TestOurTunnelAndVirtualNames(t *testing.T) {
-	for _, n := range []string{"pvn0", "PVN1", "utun3", "PrivateVPN", "privatevpn"} {
+	for _, n := range []string{"pvp0", "PVP1", "utun3", "Private VPN Pro", "private vpn pro"} {
 		if !isOurTunnel(n) {
 			t.Errorf("isOurTunnel(%q) = false", n)
 		}
 	}
-	for _, n := range []string{"en0", "eth0", "wlan0", "Wi-Fi", "PrivateVPN 2", "tun0"} {
+	for _, n := range []string{"en0", "eth0", "wlan0", "Wi-Fi", "Private VPN Pro 2", "tun0"} {
 		if isOurTunnel(n) {
 			t.Errorf("isOurTunnel(%q) = true", n)
 		}

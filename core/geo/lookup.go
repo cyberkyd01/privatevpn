@@ -16,7 +16,7 @@ import (
 
 const (
 	maxBody          = 16 << 10
-	defaultUserAgent = "PrivateVPN"
+	defaultUserAgent = "PrivateVPNPro"
 	capUserAgent     = 64
 )
 

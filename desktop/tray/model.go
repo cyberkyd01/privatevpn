@@ -250,7 +250,7 @@ func problemLine(st statusModel) string {
 	case st.Problems == 1 && st.FirstProblem != "":
 		return "⚠ " + st.FirstProblem
 	}
-	return "⚠ " + strconv.Itoa(st.Problems) + " problems — open PrivateVPN for details"
+	return "⚠ " + strconv.Itoa(st.Problems) + " problems — open Private VPN Pro for details"
 }
 
 func pluralClients(n int) string {

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<!--
+  Private VPN Pro tunnel helper (ARCHITECTURE §9.4, §13.5).
+
+  Install to /usr/share/polkit-1/actions/app.privatevpnpro.policy. pkexec uses
+  this action (and its message) only when the executed program path equals
+  org.freedesktop.policykit.exec.path below, so packages must install the
+  binary at /usr/bin/private-vpn-pro (adjust the annotation otherwise). Any other
+  path falls back to the generic org.freedesktop.policykit.exec prompt.
+-->
+<policyconfig>
+  <vendor>Private VPN Pro</vendor>
+  <vendor_url>https://github.com/cyberkyd01/private-vpn-pro</vendor_url>
+  <icon_name>private-vpn-pro</icon_name>
+
+  <action id="app.privatevpnpro.tunnel-helper">
+    <description>Start the Private VPN Pro tunnel helper</description>
+    <message>Private VPN Pro needs administrator rights to create its VPN interface and to change routes and DNS while connected.</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/private-vpn-pro</annotate>
+  </action>
+</policyconfig>

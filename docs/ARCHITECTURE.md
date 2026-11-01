@@ -1,14 +1,14 @@
-# PrivateVPN — Architecture and Protocol Specification (v1)
+# Private VPN Pro — Architecture and Protocol Specification (v1)
 
 Status: **normative for v1.0**. Implementers build directly from this document. Where this document and an implementer's intuition disagree, this document wins; where this document is silent, choose the simplest option that keeps every security property in §4 and write it down in `docs/DECISIONS.md`.
 
-Repository: `privatevpn` (Go module path `github.com/OWNER/privatevpn`; replace `OWNER` once at bootstrap, nothing else depends on it).
+Repository: `private-vpn-pro` (Go module path `github.com/OWNER/private-vpn-pro`; replace `OWNER` once at bootstrap, nothing else depends on it).
 
 ### Revision 2 (2026-11-01) — changelog
 
 Two product decisions, applied throughout:
 
-1. **"Anyone can see gateways; connecting needs the key."** Beacons are now **cleartext + a 16-byte HMAC membership tag** (§5.6, §6.2) so every PrivateVPN device on the LAN lists every gateway; devices hold a **keyring** of up to 16 network keys (§5.1, §12.2); a gateway without a matching key is listed **locked** and the key is asked for once, at Connect (§13.3, §14). Entered keys are verified locally against the gateway's latest beacon tag. Location/public-IP details (INFO) stay members-only. New threat rows T13–T14 (§4). Device names are broadcast in cleartext, so the default name is non-identifying (`PC-1A2B`) and editable (D27).
+1. **"Anyone can see gateways; connecting needs the key."** Beacons are now **cleartext + a 16-byte HMAC membership tag** (§5.6, §6.2) so every Private VPN Pro device on the LAN lists every gateway; devices hold a **keyring** of up to 16 network keys (§5.1, §12.2); a gateway without a matching key is listed **locked** and the key is asked for once, at Connect (§13.3, §14). Entered keys are verified locally against the gateway's latest beacon tag. Location/public-IP details (INFO) stay members-only. New threat rows T13–T14 (§4). Device names are broadcast in cleartext, so the default name is non-identifying (`PC-1A2B`) and editable (D27).
 2. **Android is client-only.** Android gateway mode, its foreground service, locks, battery prompt, GPS source and Android dual role are removed (§11). Gateways are Windows/macOS/Linux; clients are all four; pairing matrix is 3 × 4.
 
 **Unchanged contracts** (implementation already in progress): §8 gateway engine/gwstack, §9 client/tunnel per OS, §13.5 privileged helper. The control-plane envelope and every control message (§6.1, §6.3–6.7) are byte-for-byte unchanged; only BEACON changed. One sentence in §8.6 ("Android: list passed by Kotlin…") is now moot and harmless.
@@ -35,11 +35,11 @@ Everything in this document that names a Go import path, function or constant wa
 
 ---
 
-## 1. What PrivateVPN is
+## 1. What Private VPN Pro is
 
 A private mesh of personal VPN gateways. Every installed app is the same product:
 
-* **Gateway mode** ("act as VPN gateway") — **Windows, macOS and Linux only**: this device accepts tunnels from devices that hold its network's key and forwards their Internet traffic through its own connection. Gateways announce themselves on the LAN with a public beacon and are listed on **every** PrivateVPN device's connection page, with a ⓘ details panel (location, public IP, time zone, local time, … — visible only to key holders).
+* **Gateway mode** ("act as VPN gateway") — **Windows, macOS and Linux only**: this device accepts tunnels from devices that hold its network's key and forwards their Internet traffic through its own connection. Gateways announce themselves on the LAN with a public beacon and are listed on **every** Private VPN Pro device's connection page, with a ⓘ details panel (location, public IP, time zone, local time, … — visible only to key holders).
 * **Client mode** ("connect") — **Windows, macOS, Linux and Android**: this device routes all of its traffic through a chosen gateway. Android is client-only by product decision (Revision 2).
 
 **Every pairing must work**: 3 gateway OSes × 4 client OSes, including same-OS pairs and a desktop device that is both at once (§7.4). The first real-world test (Windows gateway ← Android client on one Wi-Fi) is only the first milestone (§16), not a design boundary.
@@ -59,11 +59,11 @@ Each row: the decision, the one-line reason, and what was rejected. Rows marked 
 | D1 | One Go core (`core/…`) for all four OSes; data plane is `golang.zx2c4.com/wireguard` (wireguard-go). | One protocol implementation, one test suite; wireguard-go is the reference userspace WG. | Kernel WireGuard (needs root everywhere); OpenVPN/IPsec (heavier, no userspace story). |
 | D2 | Gateway mode is **fully userspace**: wireguard-go writes decrypted packets into a gVisor `tcpip` stack that we run as a *router* (promiscuous + spoofing NIC, TCP/UDP forwarders that dial real destinations with ordinary OS sockets). No TUN, no OS NAT, no admin rights. | Identical on Windows/macOS/Linux; Windows NAT/ICS is unreliable; no privileges → gateway mode can never be the cause of a UAC prompt. | OS NAT (`iptables`/ICS/`pf`): privileged, three different implementations. |
 | D3 | Client mode uses a real TUN (wintun / utun / `/dev/net/tun` / `VpnService`). | Only way to capture all traffic of the device. | tun2socks-style per-app proxying (does not capture everything). |
-| D4 ⚠ | Desktop client mode runs in a **privileged helper subprocess** (`privatevpn tunnel-helper`) spawned on demand (UAC / admin password / polkit); the tray + web UI + gateway engine stay unprivileged. Linux may skip the helper when the binary has `cap_net_admin`. | Least privilege, browser launched from an unprivileged process, gateway mode never needs elevation, no service installer in v1. | `requireAdministrator` manifest (UAC on every launch, autostart blocked by UAC, elevated browser); relaunching the whole app elevated (same problems); a Windows service / launchd daemon (right long-term, too much for v1; the helper's IPC is designed so that it can later be hosted by a service unchanged). |
+| D4 ⚠ | Desktop client mode runs in a **privileged helper subprocess** (`private-vpn-pro tunnel-helper`) spawned on demand (UAC / admin password / polkit); the tray + web UI + gateway engine stay unprivileged. Linux may skip the helper when the binary has `cap_net_admin`. | Least privilege, browser launched from an unprivileged process, gateway mode never needs elevation, no service installer in v1. | `requireAdministrator` manifest (UAC on every launch, autostart blocked by UAC, elevated browser); relaunching the whole app elevated (same problems); a Windows service / launchd daemon (right long-term, too much for v1; the helper's IPC is designed so that it can later be hosted by a service unchanged). |
 | D5 | Membership = 32-byte random **Network Key** (NK) per network; subkeys via HKDF-SHA256 with domain-separated labels (§5.2). No PAKE, no PKI. Devices keep a **keyring** of ≤ 16 keys; a desktop gateway serves exactly one network. | 256-bit entropy → no offline attack; one secret → frictionless onboarding (QR / paste, asked once per network). | PAKE (unneeded with high-entropy key); per-device certificates (enrollment UX, revocation infra); one key per device (cannot use two friends' gateways). |
 | D6 | Transport crypto for beacons and control = **XChaCha20-Poly1305** with 192-bit random nonces. | Many devices encrypt under the same key with no coordination; random 192-bit nonces are safe, 96-bit are not. | ChaCha20-Poly1305 (nonce coordination), AES-GCM (same + no hardware AES on some phones). |
 | D7 ⚠ | WireGuard peers additionally use a network-wide **PresharedKey** derived from NK (§5.2). | A non-member who somehow learns a public key still cannot complete a handshake; cheap post-quantum hedge for passive attackers. | — |
-| D8 ⚠ | Discovery = **cleartext** UDP beacons carrying a 16-byte **HMAC membership tag** (§5.6), sent to multicast `239.255.77.77:51822` **and** subnet-directed broadcast on every physical IPv4 interface, every 3 s. Every PrivateVPN device lists every gateway; the tag tells a key holder which of its keys matches. | Product requirement "see gateways without the key"; a MAC (not AEAD) keeps the body public while proving membership and enabling instant local "wrong key" feedback; tag reveals nothing to non-holders. | Encrypted beacons (Revision 1; invisible without the key); mDNS/DNS-SD (extra dependency, no membership proof); multicast only (dropped by many APs/phones). |
+| D8 ⚠ | Discovery = **cleartext** UDP beacons carrying a 16-byte **HMAC membership tag** (§5.6), sent to multicast `239.255.77.77:51822` **and** subnet-directed broadcast on every physical IPv4 interface, every 3 s. Every Private VPN Pro device lists every gateway; the tag tells a key holder which of its keys matches. | Product requirement "see gateways without the key"; a MAC (not AEAD) keeps the body public while proving membership and enabling instant local "wrong key" feedback; tag reveals nothing to non-holders. | Encrypted beacons (Revision 1; invisible without the key); mDNS/DNS-SD (extra dependency, no membership proof); multicast only (dropped by many APs/phones). |
 | D9 ⚠ | Control plane = **UDP** on port 51821 (separate from WG 51820); every request is padded so that the response is never larger than the request (amplification factor ≤ 1). | Stateless server, nothing to exhaust, silent to non-members; TCP would need connection limits and TLS-less framing. | TCP (connection state, SYN floods); multiplexing on the WG port (would require a custom `conn.Bind`). |
 | D10 | Rich gateway details travel in a separate **INFO** request/response (JSON inside AEAD), not in the beacon. | Beacons stay small and constant; details are needed for manually added gateways too; details refresh independently. | Inline in beacon (≈4× beacon size, every 3 s, cannot serve manual gateways). |
 | D11 ⚠ | Per-gateway tunnel subnet is **derived from the gateway's public key**: `10.77.H.0/24`, H ∈ 1..254 (§7.2). | Dual-role devices and multi-gateway networks get distinct subnets without configuration. | Fixed `10.77.0.0/24` (collides when a device is both client and gateway). |
@@ -82,7 +82,7 @@ Each row: the decision, the one-line reason, and what was rejected. Rows marked 
 | D24 | Logging: in-memory ring buffer only; wireguard-go runs at `LogLevelSilent` on gateways. | wireguard-go's own log lines contain peer key prefixes and endpoints. | File logs. |
 | D25 ⚠ | **Public beacon, private details.** Non-holders see the beacon body (name, OS, version, ports, flags, client count, gateway public key) and its source IP; everything in the ⓘ panel beyond that (public IP, country/region/city, lat/lon, time zone, live time, ISP, LAN IPs, uptime) stays in INFO under `K_ctrl`, i.e. key holders only. A locked ⓘ panel shows the public fields plus "Enter the key to see location details and connect". | The public part is exactly what a new device needs to recognise a gateway and decide to enter its key; location and public IP are sensitive and gain nothing by being public. | Everything public (location leak on shared LANs); everything private (contradicts the product decision). |
 | D26 ⚠ | **Android is client-only.** No gateway engine runs on Android; no gateway service, locks, battery prompt, GPS or dual role. | Product decision; also removes the least reliable component (background survival on vendor ROMs). | Android gateway (Revision 1). |
-| D27 | Default gateway name is non-identifying: `PC-xxxx` / `Mac-xxxx` / `Linux-xxxx` with `xxxx` = first 4 hex chars of the key fingerprint; user-editable; the Gateway page says the name is visible to every PrivateVPN device on the LAN. | Names are now cleartext on any LAN the gateway is on. | Hostname default (often a person's name). |
+| D27 | Default gateway name is non-identifying: `PC-xxxx` / `Mac-xxxx` / `Linux-xxxx` with `xxxx` = first 4 hex chars of the key fingerprint; user-editable; the Gateway page says the name is visible to every Private VPN Pro device on the LAN. | Names are now cleartext on any LAN the gateway is on. | Hostname default (often a person's name). |
 
 ---
 
@@ -111,8 +111,8 @@ Process model per OS:
 
 | OS | Processes |
 |---|---|
-| Windows / macOS / Linux | `privatevpn` (tray, web UI, core: discovery, gateway engine, control client) + on demand `privatevpn tunnel-helper` (elevated; TUN + client WG device + routes/DNS). |
-| Android | one app process: Kotlin UI + `PvnVpnService` (client) + Go core (AAR). The gateway engine is compiled out of the mobile build (`//go:build !android` on `core/gateway`, `core/gwstack`, `core/geo`). |
+| Windows / macOS / Linux | `private-vpn-pro` (tray, web UI, core: discovery, gateway engine, control client) + on demand `private-vpn-pro tunnel-helper` (elevated; TUN + client WG device + routes/DNS). |
+| Android | one app process: Kotlin UI + `PvpVpnService` (client) + Go core (AAR). The gateway engine is compiled out of the mobile build (`//go:build !android` on `core/gateway`, `core/gwstack`, `core/geo`). |
 
 ---
 
@@ -147,28 +147,28 @@ Assets: the Network Key; the gateway's Internet connection and LAN; client traff
 * **String form** (shown as text and as QR, pasted or scanned on other devices):
 
   ```
-  raw   = NK(32) || check(2)       where check = SHA-256("pvn1 key check" || NK)[0:2]
+  raw   = NK(32) || check(2)       where check = SHA-256("pvp1 key check" || NK)[0:2]
   body  = Base32(raw)              RFC 4648 alphabet A–Z2–7, no padding → 55 chars
-  text  = "PVN1-" + body split into 11 groups of 5 joined by "-"
-  e.g.  PVN1-K7Q2M-ZB3XW-… (70 chars total)
+  text  = "PVP1-" + body split into 11 groups of 5 joined by "-"
+  e.g.  PVP1-K7Q2M-ZB3XW-… (70 chars total)
   ```
 
-  Parsing: strip whitespace and `-`, uppercase, require prefix `PVN1`, decode 55 chars, verify check. Accept the QR payload byte-for-byte equal to `text`.
+  Parsing: strip whitespace and `-`, uppercase, require prefix `PVP1`, decode 55 chars, verify check. Accept the QR payload byte-for-byte equal to `text`.
 * **Keyring**: a device holds up to **16** network keys (§12.2), each with a local label and timestamps. Keys are created only by desktop gateways ("Create network" happens implicitly when gateway mode is first enabled with an empty keyring, or explicitly from the Networks page). Clients never create keys. Adding a key that is byte-identical to an existing entry reuses that entry.
 * A **desktop gateway serves exactly one network** (`gateway.network_id` → keyring entry). Switching it restarts the gateway (all peers drop).
 * The key is displayed only on explicit user action ("Show key") and copied to the clipboard only on explicit action.
 
 ### 5.2 Derived keys (HKDF-SHA256, Go `crypto/hkdf`)
 
-All derivations: `hkdf.Key(sha256.New, NK, salt, info, length)` with `salt = []byte("PrivateVPN-v1")`.
+All derivations: `hkdf.Key(sha256.New, NK, salt, info, length)` with `salt = []byte("PrivateVPNPro-v1")`.
 
 | Name | `info` label | Length | Used for |
 |---|---|---|---|
-| `K_beacon` | `"pvn1 beacon"` | 32 | **HMAC-SHA256 key** for the beacon membership tag (§5.6) — beacons are cleartext |
-| `K_ctrl` | `"pvn1 control"` | 32 | AEAD key for all control messages (JOIN/RENEW/LEAVE/INFO/ERROR) |
-| `K_psk` | `"pvn1 wg psk"` | 32 | WireGuard `preshared_key` on every peer of every tunnel in the network |
-| `K_dir` | `"pvn1 directory"` | 32 | (v1.1) directory blob encryption |
-| `DirID` | `"pvn1 directory id"` | 16 | (v1.1) opaque network identifier sent to a directory server |
+| `K_beacon` | `"pvp1 beacon"` | 32 | **HMAC-SHA256 key** for the beacon membership tag (§5.6) — beacons are cleartext |
+| `K_ctrl` | `"pvp1 control"` | 32 | AEAD key for all control messages (JOIN/RENEW/LEAVE/INFO/ERROR) |
+| `K_psk` | `"pvp1 wg psk"` | 32 | WireGuard `preshared_key` on every peer of every tunnel in the network |
+| `K_dir` | `"pvp1 directory"` | 32 | (v1.1) directory blob encryption |
+| `DirID` | `"pvp1 directory id"` | 16 | (v1.1) opaque network identifier sent to a directory server |
 
 No cleartext network identifier is ever transmitted on the LAN. Receivers trial-verify each beacon's tag against every key in their keyring (≤ 16 HMACs over 100 bytes — negligible); control responses are trial-decrypted only when a client has sent a request under a specific key (the client knows which key it used).
 
@@ -385,7 +385,7 @@ Clients use ephemeral source ports for everything.
 
 ### 7.2 Addresses
 
-* Gateway subnet: `10.77.H.0/24` with `H = 1 + (SHA-256("pvn1 subnet" || gw_pubkey)[0] mod 254)`. Override in gateway settings (`gateway.subnet`, any `/24` inside `10.0.0.0/8`, `172.16.0.0/12` or `192.168.0.0/16`).
+* Gateway subnet: `10.77.H.0/24` with `H = 1 + (SHA-256("pvp1 subnet" || gw_pubkey)[0] mod 254)`. Override in gateway settings (`gateway.subnet`, any `/24` inside `10.0.0.0/8`, `172.16.0.0/12` or `192.168.0.0/16`).
 * Gateway: `.1`. Clients: `.2`–`.254`, allocated **least-recently-released first** (a freed address is not reused while a fresher one is free).
 * A client refuses a JOIN_RESP whose subnet overlaps a subnet it is itself serving (dual role, §7.4) or one of its own physical LAN subnets, with the UI error "address conflict — change the gateway's subnet in its settings".
 
@@ -403,7 +403,7 @@ Required mechanics (all also needed for single-role correctness, so this adds li
 | OS | Replies to this device's clients (WG + control listeners) | This device's forwarded flows, DNS upstream, geo lookup |
 |---|---|---|
 | Android (client-only; listed for the exclusion mechanism) | n/a — no gateway listeners. `VpnService.Builder.addDisallowedApplication(ownPackage)` makes the app's own WG, control and beacon sockets bypass the VPN. | n/a |
-| Linux | WG client bind uses `SetMark(0x5056)`; policy routing: `ip rule add not fwmark 0x5056 table 5056`, `ip rule add table main suppress_prefixlength 0`, `ip route add default dev pvn0 table 5056`. All gateway sockets set `SO_MARK 0x5056` via `net.ListenConfig/Dialer.Control`. Marked traffic uses the main table → physical. | same mark |
+| Linux | WG client bind uses `SetMark(0x5056)`; policy routing: `ip rule add not fwmark 0x5056 table 5056`, `ip rule add table main suppress_prefixlength 0`, `ip route add default dev pvp0 table 5056`. All gateway sockets set `SO_MARK 0x5056` via `net.ListenConfig/Dialer.Control`. Marked traffic uses the main table → physical. | same mark |
 | Windows | LAN clients: the physical interface's on-link `/24` beats the tunnel's `/1` routes (longest prefix). Off-LAN clients: on JOIN the gateway asks the helper to add a `/32` route for the client's endpoint via the physical default gateway (`route_add`, §13.5); removed when the lease ends. | `IP_UNICAST_IF` / `IPV6_UNICAST_IF` (`golang.org/x/sys/windows`, value 31 / 31) set to the physical default interface index via `Dialer.Control` — only for destinations outside RFC1918/on-link ranges. Geo HTTP client and DNS upstream dialer always bound. |
 | macOS | as Windows (`/32` host routes via helper) | `IP_BOUND_IF` (0x19) / `IPV6_BOUND_IF` (0x7d) from `golang.org/x/sys/unix`, same rule. |
 
@@ -441,7 +441,7 @@ UDP 51820 ──► wireguard-go device ──► gwstack.Device (tun.Device imp
                                               └────── OS sockets ────────────┘ ──► Internet / LAN
 ```
 
-* `gwstack.Device` implements `golang.zx2c4.com/wireguard/tun.Device` exactly like `tun/netstack` does (use `tun/netstack/tun.go` as the template: `channel.New(512, mtu, "")`, `AddNotify`, `InjectInbound` on `Write`, `ReadContext` → `Read`; `BatchSize() = 1`; `Events()` sends `tun.EventUp` once; `Name()` = `"pvn-gw"`; `File()` = nil).
+* `gwstack.Device` implements `golang.zx2c4.com/wireguard/tun.Device` exactly like `tun/netstack` does (use `tun/netstack/tun.go` as the template: `channel.New(512, mtu, "")`, `AddNotify`, `InjectInbound` on `Write`, `ReadContext` → `Read`; `BatchSize() = 1`; `Events()` sends `tun.EventUp` once; `Name()` = `"pvp-gw"`; `File()` = nil).
 * Stack options: `NetworkProtocols: ipv4.NewProtocol` (**no ipv6**), `TransportProtocols: tcp.NewProtocol, udp.NewProtocol, icmp.NewProtocol4`, `HandleLocal: false`. After `CreateNIC(1, ep)`: `AddProtocolAddress(1, 10.77.H.1/24)`, `SetPromiscuousMode(1, true)`, `SetSpoofing(1, true)`, route table `{Destination: header.IPv4EmptySubnet, NIC: 1}`, `TCPSACKEnabled(true)`. Forwarding stays off (we are not an IP router; the forwarders terminate flows).
 * `tcp.NewForwarder(stack, 0 /*default rcv window*/, 256 /*maxInFlight*/, handler)` registered with `SetTransportProtocolHandler(tcp.ProtocolNumber, fwd.HandlePacket)`; `udp.NewForwarder(stack, handler)` likewise.
 * wireguard-go device: `device.NewDevice(gwDev, conn.NewDefaultBind(), device.NewLogger(device.LogLevelSilent, ""))` then `IpcSet` with `private_key`, `listen_port`, and per-client `public_key`/`preshared_key`/`allowed_ip` lines (`replace_peers` never; remove with `remove=true`).
@@ -544,9 +544,9 @@ idle ─connect(gw)─► joining ─JOIN_RESP─► tunnel_up ─first handshak
 
 WireGuard UAPI for the client device: `private_key`, `listen_port=0`, `fwmark=<Linux only>`, peer `public_key`, `preshared_key`, `endpoint`, `allowed_ip=0.0.0.0/0`, `persistent_keepalive_interval=25`.
 
-### 9.2 Windows (in `privatevpn tunnel-helper`, elevated)
+### 9.2 Windows (in `private-vpn-pro tunnel-helper`, elevated)
 
-* TUN: `tun.CreateTUNWithRequestedGUID("PrivateVPN", &fixedGUID, 1280)` — `fixedGUID = {B6F0C2A1-7D3E-4C6A-9E2B-5A1F3D8C0E77}` so Windows keeps one interface profile. `wintun.dll` must sit **next to `privatevpn.exe`** (the `golang.zx2c4.com/wintun` loader uses `LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_SYSTEM32` only). First use installs the Wintun driver (needs admin — the helper is admin).
+* TUN: `tun.CreateTUNWithRequestedGUID("Private VPN Pro", &fixedGUID, 1280)` — `fixedGUID = {B6F0C2A1-7D3E-4C6A-9E2B-5A1F3D8C0E77}` so Windows keeps one interface profile. `wintun.dll` must sit **next to `private-vpn-pro.exe`** (the `golang.zx2c4.com/wintun` loader uses `LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_SYSTEM32` only). First use installs the Wintun driver (needs admin — the helper is admin).
 * `luid := winipcfg.LUID(dev.(*tun.NativeTun).LUID())`.
 * Address: `luid.SetIPAddresses([]netip.Prefix{addr})`. Interface metric: `row, _ := luid.IPInterface(windows.AF_INET); row.UseAutomaticMetric=false; row.Metric=0; row.NLMTU=1280; row.Set()` (mirror `tunnel/addressconfig.go` in `golang.zx2c4.com/wireguard/windows` — read it).
 * Routes: `luid.SetRoutes` with `0.0.0.0/1` and `128.0.0.0/1` (next hop `0.0.0.0`, metric 0); IPv6 sink `::/1`, `8000::/1` on the same LUID (interfaces have a link-local v6 address automatically). **Endpoint exclusion:** add `<endpoint>/32` on the physical interface via its current default gateway, found with `winipcfg.GetIPForwardTable2(windows.AF_INET)` (`[]MibIPforwardRow2`) — pick the lowest-metric `0.0.0.0/0` row whose interface is not our LUID. Re-evaluate on route change (`winipcfg.RegisterRouteChangeCallback(func(MibNotificationType, *MibIPforwardRow2))`) and update the `/32`.
@@ -559,23 +559,23 @@ WireGuard UAPI for the client device: `private_key`, `listen_port=0`, `fwmark=<L
 * TUN: `tun.CreateTUN("utun", 1280)` → kernel assigns `utunN`; `dev.Name()`.
 * Configure by executing (absolute paths, args as a slice, never a shell): `/sbin/ifconfig utunN inet 10.77.H.2 10.77.H.1 netmask 255.255.255.0 mtu 1280 up`; `/sbin/route -q -n add -inet 0.0.0.0/1 -interface utunN`; same for `128.0.0.0/1`; `/sbin/route -q -n add -inet6 ::/1 -interface utunN`, `8000::/1`; endpoint exclusion `/sbin/route -q -n add -inet <endpoint> <physical gw>` where the physical gateway comes from a `golang.org/x/net/route` RIB lookup (`route.FetchRIB(unix.AF_INET, route.RIBTypeRoute, 0)` → `route.ParseRIB` → `*route.RouteMessage` with `RTF_GATEWAY`, skipping `utun*` interfaces); fallback: parse `route -n get default`.
 * DNS: for every active network service (`/usr/sbin/networksetup -listallnetworkservices`), record current `-getdnsservers` and set `-setdnsservers <svc> 10.77.H.1`. On down, restore recorded values (or `Empty`). The helper writes the recorded values to `<data dir>/run/dns-backup.json` **before** changing anything and restores from it on the next start if it exists (crash recovery).
-* Elevation: `/usr/bin/osascript -e 'do shell script "<quoted exe> tunnel-helper --socket <path> --uid <n>" with administrator privileges'`. The quoted string must be built with a strict quoting function (only `[A-Za-z0-9/_.\-]` plus the two numbers are allowed; refuse otherwise). Later (when signed): `SMAppService` + XPC.
+* Elevation: `/usr/bin/osascript -e 'do shell script "<quoted exe> tunnel-helper --socket <path> --uid <n>" with administrator privileges'`. The quoted string must be built with a strict quoting function (only `[A-Za-z0-9/_.\- ]`, single-quoted, plus the two numbers are allowed; refuse otherwise). Later (when signed): `SMAppService` + XPC.
 * `fyne.io/systray` uses cgo on macOS; the helper subcommand is the same binary.
 
 ### 9.4 Linux (helper via `pkexec`, or in-process when `CapEff` has `CAP_NET_ADMIN`)
 
-* TUN: `tun.CreateTUN("pvn0", 1280)`.
-* `ip` commands (`/usr/sbin/ip` or `/sbin/ip`, exec without shell): `ip addr add 10.77.H.2/24 dev pvn0`; `ip link set up dev pvn0 mtu 1280`; policy routing exactly as wg-quick: `ip route add default dev pvn0 table 20566`; `ip rule add not fwmark 20566 table 20566 priority 20566`; `ip rule add table main suppress_prefixlength 0 priority 20565`; IPv6: `ip -6 route add default dev pvn0 table 20566` + the same two `-6` rules. WireGuard device gets `fwmark=20566`. No endpoint route is needed (marked WG packets use the main table).
-* DNS: if `/run/systemd/resolve/` exists → `resolvectl dns pvn0 10.77.H.1` + `resolvectl domain pvn0 '~.'` (reverts automatically when the interface disappears). Else write `/etc/resolv.conf` with a backup at `/etc/resolv.conf.privatevpn-backup` and restore on down/next start.
-* Elevation: `pkexec <exe> tunnel-helper --socket <path> --uid <n>` (ship `build/linux/app.privatevpn.policy` for a friendly prompt). If `pkexec` is missing, show: `sudo setcap cap_net_admin+ep /path/to/privatevpn` then the app runs the tunnel in-process.
-* Cleanup: `ip link del pvn0` removes routes; rules are deleted explicitly; on start, remove stale rules with our priority numbers.
+* TUN: `tun.CreateTUN("pvp0", 1280)`.
+* `ip` commands (`/usr/sbin/ip` or `/sbin/ip`, exec without shell): `ip addr add 10.77.H.2/24 dev pvp0`; `ip link set up dev pvp0 mtu 1280`; policy routing exactly as wg-quick: `ip route add default dev pvp0 table 20566`; `ip rule add not fwmark 20566 table 20566 priority 20566`; `ip rule add table main suppress_prefixlength 0 priority 20565`; IPv6: `ip -6 route add default dev pvp0 table 20566` + the same two `-6` rules. WireGuard device gets `fwmark=20566`. No endpoint route is needed (marked WG packets use the main table).
+* DNS: if `/run/systemd/resolve/` exists → `resolvectl dns pvp0 10.77.H.1` + `resolvectl domain pvp0 '~.'` (reverts automatically when the interface disappears). Else write `/etc/resolv.conf` with a backup at `/etc/resolv.conf.private-vpn-pro-backup` and restore on down/next start.
+* Elevation: `pkexec <exe> tunnel-helper --socket <path> --uid <n>` (ship `build/linux/app.privatevpnpro.policy` for a friendly prompt). If `pkexec` is missing, show: `sudo setcap cap_net_admin+ep /path/to/private-vpn-pro` then the app runs the tunnel in-process.
+* Cleanup: `ip link del pvp0` removes routes; rules are deleted explicitly; on start, remove stale rules with our priority numbers.
 
-### 9.5 Android (in-process, `PvnVpnService`)
+### 9.5 Android (in-process, `PvpVpnService`)
 
 Kotlin implements `Callbacks.establishTun(configJSON)`:
 
 ```kotlin
-Builder().setSession("PrivateVPN")
+Builder().setSession("Private VPN Pro")
   .addAddress(addr, 24).addRoute("0.0.0.0", 0).addRoute("::", 0)   // v6 sink
   .addDnsServer(dns).setMtu(mtu).setBlocking(true).setMetered(false)
   .addDisallowedApplication(packageName)                            // our sockets bypass the VPN (§7.4)
@@ -616,7 +616,7 @@ DNS query `A example.com` to `10.77.H.1`, then TCP connect to `1.1.1.1:443` thro
 
 ### 10.2 How the gateway learns its public IP and location (`core/geo`)
 
-Providers, tried in order until one succeeds (plain `GET`, no API key, `User-Agent: PrivateVPN/<version>` and nothing else):
+Providers, tried in order until one succeeds (plain `GET`, no API key, `User-Agent: Private VPN Pro/<version>` and nothing else):
 
 | Provider | URL | Mapping |
 |---|---|---|
@@ -696,14 +696,14 @@ Android never acts as a gateway (D26). It discovers gateways, keeps a keyring, c
 
 ### 11.1 Project
 
-`android/` Gradle project (Kotlin DSL), AGP 8.x, JDK 21, `compileSdk 36`, `minSdk 26`, `targetSdk 35`, package `app.privatevpn`. Dependencies: Compose BOM + Material 3, `activity-compose`, `lifecycle-runtime-compose`, `com.journeyapps:zxing-android-embedded:4.3.0` (scan), `implementation(files("libs/core.aar"))`. No networking library, no crypto library, no QR *encoder* (Android never shows a key as QR — keys are created on desktops; "Show key" on Android displays text only, for typing into another device).
+`android/` Gradle project (Kotlin DSL), AGP 8.x, JDK 21, `compileSdk 36`, `minSdk 26`, `targetSdk 35`, package `app.privatevpnpro`. Dependencies: Compose BOM + Material 3, `activity-compose`, `lifecycle-runtime-compose`, `com.journeyapps:zxing-android-embedded:4.3.0` (scan), `implementation(files("libs/core.aar"))`. No networking library, no crypto library, no QR *encoder* (Android never shows a key as QR — keys are created on desktops; "Show key" on Android displays text only, for typing into another device).
 
 ```
-android/app/src/main/java/app/privatevpn/
-  PvnApplication.kt          // mobile.Mobile.start(filesDir/"pvn", BuildConfig.VERSION_NAME, CoreCallbacks)
+android/app/src/main/java/app/privatevpnpro/
+  PvpApplication.kt          // mobile.Mobile.start(filesDir/"pvp", BuildConfig.VERSION_NAME, CoreCallbacks)
   core/CoreBridge.kt         // call(method, json): String; events → StateFlow<UiState>
   core/CoreCallbacks.kt      // implements mobile.Callbacks (below)
-  vpn/PvnVpnService.kt       // VpnService (client mode), foreground type systemExempted
+  vpn/PvpVpnService.kt       // VpnService (client mode), foreground type systemExempted
   net/NetworkWatcher.kt      // ConnectivityManager callback → core.call("sys.network_changed")
   net/MulticastLockHolder.kt // held while the app process runs the beacon receiver
   ui/MainActivity.kt, ui/Nav.kt
@@ -736,22 +736,22 @@ func Stop()
 func Call(method, argsJSON string) (string, error)          // §14.4 method table; errors are {"code","message"} JSON
 ```
 
-Generated Java package: `app.privatevpn.mobile` (`gomobile bind -javapkg app.privatevpn`). `int` maps to Java `long`.
+Generated Java package: `app.privatevpnpro.mobile` (`gomobile bind -javapkg app.privatevpnpro`). `int` maps to Java `long`.
 
 Go-side DNS on Android: Go's resolver cannot read `/etc/resolv.conf`; `core/engine` installs `net.DefaultResolver = &net.Resolver{PreferGo: true, Dial: <dial the servers from SystemInfo().dns>}` and refreshes on `sys.network_changed`. Only manual-gateway hostnames need it. The mobile build excludes `core/gateway`, `core/gwstack` and `core/geo` (`//go:build !android`), so `gateway.*` methods return `{"code":"unsupported"}` on Android.
 
 ### 11.3 Flows
 
-* **First launch:** the Gateways screen is the start screen; it already lists every gateway on the LAN (locked ones with a lock badge). An empty-state card explains: "Gateways on your network appear here. To connect, enter the gateway's key once — shown on the gateway's PrivateVPN page." There is no "Create network" on Android.
+* **First launch:** the Gateways screen is the start screen; it already lists every gateway on the LAN (locked ones with a lock badge). An empty-state card explains: "Gateways on your network appear here. To connect, enter the gateway's key once — shown on the gateway's Private VPN Pro page." There is no "Create network" on Android.
 * **Connect (locked gateway):** tap Connect → `KeyEntrySheet` (scan via `ScanContract`, or paste) → `Call("gateways.unlock", {"gateway_id", "key_text"})` → Go verifies the key locally against the gateway's last beacon tag (§5.6) → on success the key is stored in the keyring (asked **once** per network; §13.3 replace-or-add rule) and the entry becomes verified; on failure "This key does not match <name>". Then the verified-gateway flow continues immediately.
-* **Connect (verified gateway):** `VpnService.prepare(ctx)` consent (if needed) → `startForegroundService(PvnVpnService, gateway_id)` → service `onStartCommand` → `Call("client.connect", {"gateway_id":…})` → Go JOINs under the bound key → `EstablishTun` → events drive the UI. Notification shows state and a "Disconnect" action.
+* **Connect (verified gateway):** `VpnService.prepare(ctx)` consent (if needed) → `startForegroundService(PvpVpnService, gateway_id)` → service `onStartCommand` → `Call("client.connect", {"gateway_id":…})` → Go JOINs under the bound key → `EstablishTun` → events drive the UI. Notification shows state and a "Disconnect" action.
 * **Add by address (secondary):** overflow menu → "Add gateway by address" (`host[:port]`, label) → `Call("gateways.manual_add", …)`; the entry is listed and tries each keyring key via INFO (§6.6); if none verifies it is listed locked and Connect prompts for the key (verified via INFO trial instead of a beacon tag).
 * **Details ⓘ:** bottom sheet; verified: `Call("gateways.info", …)` every 30 s while open, live clock per §10.6; locked: public fields + key entry (§10.6).
 * **Keyring screen:** list of networks (label, first used, gateways seen), rename, remove (removing makes that network's gateways locked again), "Show key" (text only, after a confirmation).
 
 ### 11.4 MulticastLock, Doze and lifecycle
 
-* **MulticastLock** (`WifiManager.createMulticastLock("pvn-discovery")`, `setReferenceCounted(false)`) is needed for beacon *reception* (Wi-Fi drivers filter multicast otherwise) and is held whenever the Go beacon receiver is open: while any Activity is started, and while `PvnVpnService` runs (so the list stays fresh during a session). Subnet broadcasts are delivered without the lock on most devices, which is why D8 sends both. Released, together with `mobile.Stop()`, when no Activity is visible and no VPN session is active.
+* **MulticastLock** (`WifiManager.createMulticastLock("pvp-discovery")`, `setReferenceCounted(false)`) is needed for beacon *reception* (Wi-Fi drivers filter multicast otherwise) and is held whenever the Go beacon receiver is open: while any Activity is started, and while `PvpVpnService` runs (so the list stays fresh during a session). Subnet broadcasts are delivered without the lock on most devices, which is why D8 sends both. Released, together with `mobile.Stop()`, when no Activity is visible and no VPN session is active.
 * **Doze**: only the VPN session must survive the screen being off, and a `VpnService` foreground service does (WireGuard's 25 s keepalive is the only periodic traffic). No wake lock, no battery-optimisation request.
 * **Notification**: the `VpnService` foreground notification ("Connected to <gateway>", action "Disconnect"); `POST_NOTIFICATIONS` is requested at first connect; if denied the service still runs.
 * **Reachability note** shown in the ⓘ panel of a gateway uses the gateway's own `nat` field (§10.4) — nothing Android-specific.
@@ -759,7 +759,7 @@ Go-side DNS on Android: Go's resolver cannot read `/etc/resolv.conf`; `core/engi
 | State | MulticastLock | Foreground service |
 |---|---|---|
 | App in foreground, idle | held | – |
-| Client connected (background) | held | `PvnVpnService` (systemExempted) |
+| Client connected (background) | held | `PvpVpnService` (systemExempted) |
 | App closed, nothing active | released; `Stop()` core | – |
 
 ---
@@ -780,10 +780,10 @@ One file `state.json` (plus `run/` for runtime files on desktop):
 
 | OS | Directory | Perms |
 |---|---|---|
-| Windows | `%LOCALAPPDATA%\PrivateVPN\` | directory ACL inherited (user-only by default); file written with `CreateFile` default DACL |
-| macOS | `~/Library/Application Support/PrivateVPN/` | `0700` / `0600` |
-| Linux | `$XDG_CONFIG_HOME/privatevpn/` (default `~/.config/privatevpn/`); runtime sockets in `$XDG_RUNTIME_DIR/privatevpn/` | `0700` / `0600` |
-| Android | `<filesDir>/pvn/` (app-private, excluded from backup) | app sandbox |
+| Windows | `%LOCALAPPDATA%\Private VPN Pro\` | directory ACL inherited (user-only by default); file written with `CreateFile` default DACL |
+| macOS | `~/Library/Application Support/Private VPN Pro/` | `0700` / `0600` |
+| Linux | `$XDG_CONFIG_HOME/private-vpn-pro/` (default `~/.config/private-vpn-pro/`); runtime sockets in `$XDG_RUNTIME_DIR/private-vpn-pro/` | `0700` / `0600` |
+| Android | `<filesDir>/pvp/` (app-private, excluded from backup) | app sandbox |
 
 ```json
 {
@@ -814,17 +814,17 @@ Keyring rules: `id` is local and never transmitted; `label` defaults to "My netw
 
 Never persisted: client session keys, leases, peers, endpoints, event log, INFO results, raw beacons. `known_gateways` holds only gateway (opted-in) identities and is capped at 64 entries.
 
-Writes are atomic (write temp file in the same dir, fsync, rename). A `.lock` file (`flock` / Windows exclusive open) in the data dir enforces a single desktop instance; a second instance shows a notification "PrivateVPN is already running (use the tray icon)" and exits.
+Writes are atomic (write temp file in the same dir, fsync, rename). A `.lock` file (`flock` / Windows exclusive open) in the data dir enforces a single desktop instance; a second instance shows a notification "Private VPN Pro is already running (use the tray icon)" and exits.
 
 ---
 
-## 13. Desktop application (`cmd/privatevpn`, `desktop/…`)
+## 13. Desktop application (`cmd/private-vpn-pro`, `desktop/…`)
 
 ### 13.1 Process and tray
 
-* One binary; subcommands: `privatevpn` (default: tray + UI + core), `privatevpn tunnel-helper …` (§13.5), `privatevpn firewall add|remove` (Windows, elevated, §13.6), `privatevpn version`, `privatevpn --no-tray` (Linux sessions without a StatusNotifier host: prints the one-time URL to stdout and keeps running).
-* Tray via `fyne.io/systray` (`systray.Run(onReady, onExit)`): menu = **Open PrivateVPN**, status line (disabled item), **Gateway mode** (checkbox), **Connect to ▸** submenu (live gateway list, verified+online first; locked entries show a 🔒 prefix and selecting one opens the web UI on that gateway's key prompt), **Disconnect**, separator, **Copy my gateway key** (present only when `gateway.network_id` is set; copies that key's text), **Quit**. Icon states: idle, gateway on, connected, both. macOS: `systray.SetTemplateIcon`; `Info.plist` has `LSUIElement = true` so there is no Dock icon. Windows: `-ldflags "-H windowsgui"` so there is no console window. There is **no application window** on any OS.
-* "Open PrivateVPN" mints a token (§13.4) and launches the browser: Windows `windows.ShellExecute(0,"open",url,…)` (from the unprivileged process, so the browser is unprivileged); macOS `/usr/bin/open <url>`; Linux `xdg-open <url>`.
+* One binary; subcommands: `private-vpn-pro` (default: tray + UI + core), `private-vpn-pro tunnel-helper …` (§13.5), `private-vpn-pro firewall add|remove` (Windows, elevated, §13.6), `private-vpn-pro version`, `private-vpn-pro --no-tray` (Linux sessions without a StatusNotifier host: prints the one-time URL to stdout and keeps running).
+* Tray via `fyne.io/systray` (`systray.Run(onReady, onExit)`): menu = **Open Private VPN Pro**, status line (disabled item), **Gateway mode** (checkbox), **Connect to ▸** submenu (live gateway list, verified+online first; locked entries show a 🔒 prefix and selecting one opens the web UI on that gateway's key prompt), **Disconnect**, separator, **Copy my gateway key** (present only when `gateway.network_id` is set; copies that key's text), **Quit**. Icon states: idle, gateway on, connected, both. macOS: `systray.SetTemplateIcon`; `Info.plist` has `LSUIElement = true` so there is no Dock icon. Windows: `-ldflags "-H windowsgui"` so there is no console window. There is **no application window** on any OS.
+* "Open Private VPN Pro" mints a token (§13.4) and launches the browser: Windows `windows.ShellExecute(0,"open",url,…)` (from the unprivileged process, so the browser is unprivileged); macOS `/usr/bin/open <url>`; Linux `xdg-open <url>`.
 
 ### 13.2 Web UI
 
@@ -851,8 +851,8 @@ Static files under `desktop/web/ui/` embedded with `//go:embed ui/*`: `index.htm
 
 * Listen `127.0.0.1:47771` (configured port; try 47772…47780 if busy; the tray always knows the real one). Never `0.0.0.0`, never `localhost` (name), no IPv6 listener.
 * **Host check**: `r.Host` must be exactly `127.0.0.1:<port>`; otherwise `421 Misdirected Request`, no body. Also reject requests whose `Host` is `localhost` (DNS rebinding commonly targets names).
-* **Login**: tray mints `tok` (32 random bytes, base64url), stores `{tok → expiry now+60 s}` (max 8 outstanding), opens `http://127.0.0.1:<port>/#t=<tok>`. `index.html` JS reads `location.hash`, calls `history.replaceState` to clear it, then `POST /api/v1/session {"token":tok}`. Server: single-use (delete on first sight), expiry check, then `Set-Cookie: pvn_s=<32 random bytes b64url>; HttpOnly; SameSite=Strict; Path=/` and body `{"csrf":"<32 random bytes b64url>"}` (kept in JS memory only). Sessions: idle expiry 12 h, max 4 concurrent, all dropped on restart. `/api/v1/session` limited to 5 req/s. Without a session, `/` serves `login.html` ("Open PrivateVPN from the tray icon") and `/api/*` returns 401.
-* **Every `/api/*` request**: valid session cookie; for non-GET additionally `Origin == http://127.0.0.1:<port>` **and** header `X-PVN-CSRF` equal to the session's csrf; `Sec-Fetch-Site`, if present, must be `same-origin` or `none`. `Content-Type: application/json` required on bodies; bodies capped at 64 KiB.
+* **Login**: tray mints `tok` (32 random bytes, base64url), stores `{tok → expiry now+60 s}` (max 8 outstanding), opens `http://127.0.0.1:<port>/#t=<tok>`. `index.html` JS reads `location.hash`, calls `history.replaceState` to clear it, then `POST /api/v1/session {"token":tok}`. Server: single-use (delete on first sight), expiry check, then `Set-Cookie: pvp_s=<32 random bytes b64url>; HttpOnly; SameSite=Strict; Path=/` and body `{"csrf":"<32 random bytes b64url>"}` (kept in JS memory only). Sessions: idle expiry 12 h, max 4 concurrent, all dropped on restart. `/api/v1/session` limited to 5 req/s. Without a session, `/` serves `login.html` ("Open Private VPN Pro from the tray icon") and `/api/*` returns 401.
+* **Every `/api/*` request**: valid session cookie; for non-GET additionally `Origin == http://127.0.0.1:<port>` **and** header `X-PVP-CSRF` equal to the session's csrf; `Sec-Fetch-Site`, if present, must be `same-origin` or `none`. `Content-Type: application/json` required on bodies; bodies capped at 64 KiB.
 * **Response headers** (all responses): `Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'none'; object-src 'none'`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Resource-Policy: same-origin`, `Cache-Control: no-store` on `/api/*`. **No** `Access-Control-*` headers ever.
 * **SSE** `GET /api/v1/events`: cookie + Host check (EventSource cannot send headers; `SameSite=Strict` prevents cross-site use). One stream per session.
 * Other local processes of **other users** cannot obtain a token; same-user processes are trusted (T6).
@@ -863,7 +863,7 @@ Static files under `desktop/web/ui/` embedded with `//go:embed ui/*`: `index.htm
 Spawned by the main process when client mode is requested on Windows/macOS/Linux (unless Linux in-process capability path). It owns: TUN, the client WireGuard device, routes, DNS, DNS-leak firewall (Windows), and the dual-role `/32` client routes. It knows nothing about the network key, discovery or the control protocol — the main process does JOIN/RENEW/INFO and sends the helper a `TunnelConfig` (which contains the **ephemeral** session private key and `K_psk` for that one tunnel).
 
 **Transport:** newline-delimited JSON, one object per line, ≤ 64 KiB per line.
-* Windows: named pipe `\\.\pipe\privatevpn-helper-<16 hex random>` created by the helper via `github.com/Microsoft/go-winio.ListenPipe` with security descriptor `D:(A;;GA;;;SY)(A;;GA;;;BA)(A;;GA;;;<launching user SID>)`; the pipe name and SID come from the command line (neither is secret).
+* Windows: named pipe `\\.\pipe\private-vpn-pro-helper-<16 hex random>` created by the helper via `github.com/Microsoft/go-winio.ListenPipe` with security descriptor `D:(A;;GA;;;SY)(A;;GA;;;BA)(A;;GA;;;<launching user SID>)`; the pipe name and SID come from the command line (neither is secret).
 * macOS/Linux: Unix socket `<runtime dir>/helper-<16 hex>.sock`; helper creates it as root, `chown <uid>`, `chmod 0600`, and verifies the peer with `SO_PEERCRED` (Linux) / `LOCAL_PEERCRED`/`getpeereid` (macOS) == `uid`.
 
 **Messages** (`"id"` echoes for request/response matching):
@@ -882,13 +882,13 @@ Helper rules: refuses to start if not elevated or if its version differs from th
 ### 13.6 Windows specifics
 
 * Manifest (embedded with `github.com/tc-hib/go-winres`): `requestedExecutionLevel level="asInvoker"`, `dpiAware`, `longPathAware`, supportedOS up to Windows 11; icon.
-* **Firewall**: Windows Defender Firewall blocks unsolicited inbound UDP. When the user enables gateway mode (and on first start for beacon reception, optionally) the app runs `privatevpn firewall add` elevated (`ShellExecute runas`) which executes `netsh advfirewall firewall add rule name="PrivateVPN" dir=in action=allow program="<exe path>" protocol=UDP profile=private,domain enable=yes` (program-scoped, UDP only, **not** the Public profile). `firewall remove` deletes it. The Gateway page shows "Firewall rule: present / missing — Add" (checked with `netsh … show rule name="PrivateVPN"`). Windows may additionally show its own prompt; both are fine.
-* **Autostart**: `HKCU\Software\Microsoft\Windows\CurrentVersion\Run\PrivateVPN = "<exe>" --autostart` (unprivileged; works because the app is `asInvoker`). macOS: `~/Library/LaunchAgents/app.privatevpn.plist` (`RunAtLoad`). Linux: `~/.config/autostart/privatevpn.desktop`. Autostart restores gateway mode if it was on; it never auto-connects a client tunnel (that would prompt for elevation at logon).
+* **Firewall**: Windows Defender Firewall blocks unsolicited inbound UDP. When the user enables gateway mode (and on first start for beacon reception, optionally) the app runs `private-vpn-pro firewall add` elevated (`ShellExecute runas`) which executes `netsh advfirewall firewall add rule name="Private VPN Pro" dir=in action=allow program="<exe path>" protocol=UDP profile=private,domain enable=yes` (program-scoped, UDP only, **not** the Public profile). `firewall remove` deletes it. The Gateway page shows "Firewall rule: present / missing — Add" (checked with `netsh … show rule name="Private VPN Pro"`). Windows may additionally show its own prompt; both are fine.
+* **Autostart**: `HKCU\Software\Microsoft\Windows\CurrentVersion\Run\Private VPN Pro = "<exe>" --autostart` (unprivileged; works because the app is `asInvoker`). macOS: `~/Library/LaunchAgents/app.privatevpnpro.plist` (`RunAtLoad`). Linux: `~/.config/autostart/private-vpn-pro.desktop`. Autostart restores gateway mode if it was on; it never auto-connects a client tunnel (that would prompt for elevation at logon).
 * Running as a standard (non-admin) user: gateway mode works without any prompt if the firewall rule exists (an admin can add it once); client mode prompts for admin credentials.
 
 ### 13.7 macOS and Linux specifics
 
-* macOS: unsigned/ad-hoc-signed builds trigger Gatekeeper ("open anyway") and the application firewall's "allow incoming connections" prompt when gateway mode first listens; `build/macos/Info.plist` with `LSUIElement`, `CFBundleIdentifier app.privatevpn`, `NSHighResolutionCapable`. Universal binary (`lipo`).
+* macOS: unsigned/ad-hoc-signed builds trigger Gatekeeper ("open anyway") and the application firewall's "allow incoming connections" prompt when gateway mode first listens; `build/macos/Info.plist` with `LSUIElement`, `CFBundleIdentifier app.privatevpnpro`, `NSHighResolutionCapable`. Universal binary (`lipo`).
 * Linux: `fyne.io/systray` needs a StatusNotifierItem host (KDE, GNOME with AppIndicator extension); otherwise `--no-tray`. Gateway mode may need `ufw allow 51820:51822/udp` — the Gateway page shows the exact command when the ports are not reachable from the LAN (self-check by having the beacon receiver observe our own beacon from the LAN broadcast).
 
 ---
@@ -956,9 +956,9 @@ Exactly the "Core method" column above. Arguments and results are the same JSON 
 ### 15.1 Layout
 
 ```
-privatevpn/
-├── go.mod                      module github.com/OWNER/privatevpn ; go 1.27
-├── cmd/privatevpn/             main.go (subcommand dispatch), main_windows.go (manifest/console), …
+private-vpn-pro/
+├── go.mod                      module github.com/OWNER/private-vpn-pro ; go 1.27
+├── cmd/private-vpn-pro/             main.go (subcommand dispatch), main_windows.go (manifest/console), …
 ├── core/
 │   ├── netkey/                 NK generation, text/QR format, HKDF subkeys, beacon tag (HMAC)
 │   ├── keyring/                keyring entries, dedup, replace-or-add rule, trial-verify helpers
@@ -987,7 +987,7 @@ privatevpn/
 ├── build/
 │   ├── windows/ (winres.json, manifest.xml, icon.ico, fetch-wintun.sh)
 │   ├── macos/   (Info.plist, make-app.sh, icon.icns)
-│   ├── linux/   (app.privatevpn.policy, privatevpn.desktop, icon.png)
+│   ├── linux/   (app.privatevpnpro.policy, private-vpn-pro.desktop, icon.png)
 │   └── android/ (signing.gradle snippet)
 ├── .github/workflows/ci.yml, release.yml
 └── docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/TESTING.md
@@ -1027,15 +1027,15 @@ Pin every action by commit SHA. Secrets: `ANDROID_KEYSTORE_B64`, `ANDROID_KEYSTO
 
 | Job | Runner | Steps | Artifact |
 |---|---|---|---|
-| windows | ubuntu-latest | `go-winres make` (manifest+icon) → `CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w -H windowsgui -X main.version=$TAG" -o privatevpn.exe ./cmd/privatevpn` (and arm64) → `build/windows/fetch-wintun.sh`: download `https://www.wintun.net/builds/wintun-0.14.1.zip`, **verify `sha256 = 07c256185d6ee3652e09fa55c0b673e2624b565e02c4b9091c79ca7d2f24ef51`** (verified 2026-11-01), extract `wintun/bin/amd64/wintun.dll` / `arm64` → zip | `privatevpn-windows-amd64.zip`, `…-arm64.zip` (exe + wintun.dll + README + LICENSES) |
-| macos | macos-14 | build arm64 and amd64 (`CGO_ENABLED=1`), `lipo -create`, `build/macos/make-app.sh` → `PrivateVPN.app` (Info.plist, icon), `codesign -s - --deep` (ad-hoc), `ditto -c -k` | `PrivateVPN-macos-universal.zip` |
-| linux | ubuntu-latest | `CGO_ENABLED=0` amd64 + arm64; tar with `.desktop`, policy file, icon | `privatevpn-linux-amd64.tar.gz`, `…-arm64…` |
-| android | ubuntu-latest | `actions/setup-java` (21), `android-actions/setup-android`, `sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;27.2.12479018"`; `go install golang.org/x/mobile/cmd/gomobile@<pinned>`; `gomobile init`; `gomobile bind -target android/arm64,android/arm,android/amd64 -androidapi 26 -javapkg app.privatevpn -trimpath -ldflags "-s -w -X …" -o android/app/libs/core.aar ./mobile`; decode keystore from secret to `$RUNNER_TEMP/release.jks`; `./gradlew assembleRelease` with `signingConfigs.release` reading the four env vars | `privatevpn-android.apk` |
+| windows | ubuntu-latest | `go-winres make` (manifest+icon) → `CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w -H windowsgui -X main.version=$TAG" -o private-vpn-pro.exe ./cmd/private-vpn-pro` (and arm64) → `build/windows/fetch-wintun.sh`: download `https://www.wintun.net/builds/wintun-0.14.1.zip`, **verify `sha256 = 07c256185d6ee3652e09fa55c0b673e2624b565e02c4b9091c79ca7d2f24ef51`** (verified 2026-11-01), extract `wintun/bin/amd64/wintun.dll` / `arm64` → zip | `private-vpn-pro-windows-amd64.zip`, `…-arm64.zip` (exe + wintun.dll + README + LICENSES) |
+| macos | macos-14 | build arm64 and amd64 (`CGO_ENABLED=1`), `lipo -create`, `build/macos/make-app.sh` → `Private VPN Pro.app` (Info.plist, icon), `codesign -s - --deep` (ad-hoc), `build/macos/make-dmg.sh` (`hdiutil`) | `private-vpn-pro-macos-universal.dmg` |
+| linux | ubuntu-latest | `CGO_ENABLED=0` amd64 + arm64; tar with `.desktop`, policy file, icon | `private-vpn-pro-linux-amd64.tar.gz`, `…-arm64…` |
+| android | ubuntu-latest | `actions/setup-java` (21), `android-actions/setup-android`, `sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;27.2.12479018"`; `go install golang.org/x/mobile/cmd/gomobile@<pinned>`; `gomobile init`; `gomobile bind -target android/arm64,android/arm,android/amd64 -androidapi 26 -javapkg app.privatevpnpro -trimpath -ldflags "-s -w -X …" -o android/app/libs/core.aar ./mobile`; decode keystore from secret to `$RUNNER_TEMP/release.jks`; `./gradlew assembleRelease` with `signingConfigs.release` reading the four env vars | `private-vpn-pro-android.apk` |
 | publish | ubuntu-latest (needs all) | `sha256sum * > SHA256SUMS`; `gh release create $TAG --notes-file …` | GitHub Release |
 
 Versioning: tags `vMAJOR.MINOR.PATCH`; Go `main.version` from the tag; Android `versionName = tag`, `versionCode = MAJOR*10000 + MINOR*100 + PATCH`. The **wire protocol version** (`0x01`) changes only on incompatible changes; the app refuses nothing by app version, only by wire version.
 
-Local developer loop (macOS dev machine): `make core-aar` (gomobile with `ANDROID_NDK_HOME` pointing at NDK 27), `make desktop` (`go run ./cmd/privatevpn`), `make windows` (cross-compile + copy `wintun.dll` from the verified zip into `dist/windows/`).
+Local developer loop (macOS dev machine): `make core-aar` (gomobile with `ANDROID_NDK_HOME` pointing at NDK 27), `make desktop` (`go run ./cmd/private-vpn-pro`), `make windows` (cross-compile + copy `wintun.dll` from the verified zip into `dist/windows/`).
 
 ---
 

@@ -12,7 +12,7 @@ import (
 //   - kill switch (Config.KillSwitch): persistent objects in a non-dynamic
 //     session with deterministic keys, so they survive the helper, the app,
 //     BFE restarts and reboots, and any later elevated process can delete
-//     them by key (Down, `privatevpn unblock`);
+//     them by key (Down, `private-vpn-pro unblock`);
 //   - DNS-only leak protection (no kill switch): the same DNS filters in a
 //     dynamic session that dies with the helper.
 //
@@ -30,9 +30,9 @@ type wfpGUID struct {
 
 // Fixed identities. Changing them would orphan objects of older builds.
 var (
-	wfpProviderKey = wfpGUID{0x7A0E5C11, 0x2B4D, 0x4E8F, [8]byte{0x9C, 0x1A, 0x50, 0x56, 0x4E, 0x50, 0x56, 0x01}}
-	wfpSublayerKey = wfpGUID{0x7A0E5C11, 0x2B4D, 0x4E8F, [8]byte{0x9C, 0x1A, 0x50, 0x56, 0x4E, 0x50, 0x56, 0x02}}
-	wfpFilterBase  = wfpGUID{0x7A0E5C11, 0x2B4D, 0x4E8F, [8]byte{0x9C, 0x1A, 0x50, 0x56, 0x4E, 0x50, 0x00, 0x00}}
+	wfpProviderKey = wfpGUID{0x7A0E5C11, 0x2B4D, 0x4E8F, [8]byte{0x9C, 0x1A, 0x50, 0x56, 0x50, 0x50, 0x56, 0x01}}
+	wfpSublayerKey = wfpGUID{0x7A0E5C11, 0x2B4D, 0x4E8F, [8]byte{0x9C, 0x1A, 0x50, 0x56, 0x50, 0x50, 0x56, 0x02}}
+	wfpFilterBase  = wfpGUID{0x7A0E5C11, 0x2B4D, 0x4E8F, [8]byte{0x9C, 0x1A, 0x50, 0x56, 0x50, 0x50, 0x00, 0x00}}
 )
 
 // wfpMaxFilters bounds the deterministic key range: Down deletes keys
@@ -115,7 +115,7 @@ type wfpSpec struct {
 
 // Weights (higher wins within the sublayer).
 const (
-	wfpWeightApp       = 15 // privatevpn.exe: gateway role, control plane, WireGuard socket
+	wfpWeightApp       = 15 // private-vpn-pro.exe: gateway role, control plane, WireGuard socket
 	wfpWeightDNSPermit = 14 // DNS to the tunnel resolver
 	wfpWeightDNSBlock  = 13 // DNS anywhere else (above LAN and tunnel permits)
 	wfpWeightPermit    = 12 // tunnel, loopback, endpoint, DHCP, NDP
@@ -173,58 +173,58 @@ func buildWFPFilters(s wfpSpec) []wfpFilter {
 		// DNS-only: block port 53 except to the tunnel resolver and from
 		// our own executable (dual-role forwarder upstream, §7.4).
 		for _, l := range wfpAllLayers {
-			add("PrivateVPN: block DNS", l, false, wfpWeightDNSBlock, dnsConds...)
+			add("Private VPN Pro: block DNS", l, false, wfpWeightDNSBlock, dnsConds...)
 		}
 		if c := dnsPermitConds(s.DNS); c != nil {
-			add("PrivateVPN: permit tunnel DNS", wfpConnectV4, true, wfpWeightDNSPermit, c...)
-			add("PrivateVPN: permit tunnel DNS", wfpRecvV4, true, wfpWeightDNSPermit, c...)
+			add("Private VPN Pro: permit tunnel DNS", wfpConnectV4, true, wfpWeightDNSPermit, c...)
+			add("Private VPN Pro: permit tunnel DNS", wfpRecvV4, true, wfpWeightDNSPermit, c...)
 		}
 		for _, l := range wfpAllLayers {
-			add("PrivateVPN: permit own DNS", l, true, wfpWeightDNSPermit, append(append([]wfpCond(nil), dnsConds...), app)...)
+			add("Private VPN Pro: permit own DNS", l, true, wfpWeightDNSPermit, append(append([]wfpCond(nil), dnsConds...), app)...)
 		}
 		return fs
 	}
 
 	// Our own executable: control plane, WireGuard socket, gateway role.
 	for _, l := range wfpAllLayers {
-		add("PrivateVPN: permit privatevpn.exe", l, true, wfpWeightApp, app)
+		add("Private VPN Pro: permit private-vpn-pro.exe", l, true, wfpWeightApp, app)
 	}
 	// DNS: only the tunnel resolver.
 	if c := dnsPermitConds(s.DNS); c != nil {
-		add("PrivateVPN: permit tunnel DNS", wfpConnectV4, true, wfpWeightDNSPermit, c...)
-		add("PrivateVPN: permit tunnel DNS", wfpRecvV4, true, wfpWeightDNSPermit, c...)
+		add("Private VPN Pro: permit tunnel DNS", wfpConnectV4, true, wfpWeightDNSPermit, c...)
+		add("Private VPN Pro: permit tunnel DNS", wfpRecvV4, true, wfpWeightDNSPermit, c...)
 	}
 	for _, l := range wfpAllLayers {
-		add("PrivateVPN: block DNS", l, false, wfpWeightDNSBlock, dnsConds...)
+		add("Private VPN Pro: block DNS", l, false, wfpWeightDNSBlock, dnsConds...)
 	}
 	// The tunnel interface itself.
 	if s.TunnelLUID != 0 {
 		for _, l := range wfpAllLayers {
-			add("PrivateVPN: permit tunnel interface", l, true, wfpWeightPermit, wfpCond{Field: wfpFieldLocalInterface, Kind: wfpU64, Num: s.TunnelLUID})
+			add("Private VPN Pro: permit tunnel interface", l, true, wfpWeightPermit, wfpCond{Field: wfpFieldLocalInterface, Kind: wfpU64, Num: s.TunnelLUID})
 		}
 	}
 	// Loopback.
 	for _, l := range wfpAllLayers {
-		add("PrivateVPN: permit loopback", l, true, wfpWeightPermit, wfpCond{Field: wfpFieldFlags, Kind: wfpFlagsAllSet, Num: 1})
+		add("Private VPN Pro: permit loopback", l, true, wfpWeightPermit, wfpCond{Field: wfpFieldFlags, Kind: wfpFlagsAllSet, Num: 1})
 	}
 	// Everything to/from the gateway endpoint (WireGuard and control share
 	// the address; ports are not restricted).
 	if s.Endpoint.IsValid() && s.Endpoint.Is4() {
 		ep := condV4(wfpFieldRemoteAddr, netip.PrefixFrom(s.Endpoint.Unmap(), 32))
-		add("PrivateVPN: permit gateway endpoint", wfpConnectV4, true, wfpWeightPermit, ep)
-		add("PrivateVPN: permit gateway endpoint", wfpRecvV4, true, wfpWeightPermit, ep)
+		add("Private VPN Pro: permit gateway endpoint", wfpConnectV4, true, wfpWeightPermit, ep)
+		add("Private VPN Pro: permit gateway endpoint", wfpRecvV4, true, wfpWeightPermit, ep)
 	}
 	// DHCPv4 (any server address: renewals are unicast).
 	dhcp4 := []wfpCond{condU8(wfpFieldProtocol, ipprotoUDP), condU16(wfpFieldLocalPort, 68), condU16(wfpFieldRemotePort, 67)}
-	add("PrivateVPN: permit DHCP request", wfpConnectV4, true, wfpWeightPermit, dhcp4...)
-	add("PrivateVPN: permit DHCP reply", wfpRecvV4, true, wfpWeightPermit, dhcp4...)
+	add("Private VPN Pro: permit DHCP request", wfpConnectV4, true, wfpWeightPermit, dhcp4...)
+	add("Private VPN Pro: permit DHCP reply", wfpRecvV4, true, wfpWeightPermit, dhcp4...)
 	// DHCPv6 (as wireguard-windows).
-	add("PrivateVPN: permit DHCPv6 request", wfpConnectV6, true, wfpWeightPermit,
+	add("Private VPN Pro: permit DHCPv6 request", wfpConnectV6, true, wfpWeightPermit,
 		condU8(wfpFieldProtocol, ipprotoUDP),
 		condV6(wfpFieldRemoteAddr, dhcpV6Servers), condV6(wfpFieldRemoteAddr, dhcpV6Site),
 		condU16(wfpFieldRemotePort, 547),
 		condV6(wfpFieldLocalAddr, pfxLinkLocalV6), condU16(wfpFieldLocalPort, 546))
-	add("PrivateVPN: permit DHCPv6 reply", wfpRecvV6, true, wfpWeightPermit,
+	add("Private VPN Pro: permit DHCPv6 reply", wfpRecvV6, true, wfpWeightPermit,
 		condU8(wfpFieldProtocol, ipprotoUDP),
 		condV6(wfpFieldRemoteAddr, pfxLinkLocalV6), condU16(wfpFieldRemotePort, 547),
 		condV6(wfpFieldLocalAddr, pfxLinkLocalV6), condU16(wfpFieldLocalPort, 546))
@@ -232,13 +232,13 @@ func buildWFPFilters(s wfpSpec) []wfpFilter {
 	icmp6 := func(typ uint16) []wfpCond {
 		return []wfpCond{condU8(wfpFieldProtocol, ipprotoICMPv6), condU16(wfpFieldICMPType, typ), condU16(wfpFieldICMPCode, 0)}
 	}
-	add("PrivateVPN: permit NDP 133", wfpConnectV6, true, wfpWeightPermit, append(icmp6(133), condV6(wfpFieldRemoteAddr, ndpRouters))...)
-	add("PrivateVPN: permit NDP 134", wfpRecvV6, true, wfpWeightPermit, append(icmp6(134), condV6(wfpFieldRemoteAddr, pfxLinkLocalV6))...)
-	add("PrivateVPN: permit NDP 135", wfpConnectV6, true, wfpWeightPermit, icmp6(135)...)
-	add("PrivateVPN: permit NDP 135", wfpRecvV6, true, wfpWeightPermit, icmp6(135)...)
-	add("PrivateVPN: permit NDP 136", wfpConnectV6, true, wfpWeightPermit, icmp6(136)...)
-	add("PrivateVPN: permit NDP 136", wfpRecvV6, true, wfpWeightPermit, icmp6(136)...)
-	add("PrivateVPN: permit NDP 137", wfpRecvV6, true, wfpWeightPermit, append(icmp6(137), condV6(wfpFieldRemoteAddr, pfxLinkLocalV6))...)
+	add("Private VPN Pro: permit NDP 133", wfpConnectV6, true, wfpWeightPermit, append(icmp6(133), condV6(wfpFieldRemoteAddr, ndpRouters))...)
+	add("Private VPN Pro: permit NDP 134", wfpRecvV6, true, wfpWeightPermit, append(icmp6(134), condV6(wfpFieldRemoteAddr, pfxLinkLocalV6))...)
+	add("Private VPN Pro: permit NDP 135", wfpConnectV6, true, wfpWeightPermit, icmp6(135)...)
+	add("Private VPN Pro: permit NDP 135", wfpRecvV6, true, wfpWeightPermit, icmp6(135)...)
+	add("Private VPN Pro: permit NDP 136", wfpConnectV6, true, wfpWeightPermit, icmp6(136)...)
+	add("Private VPN Pro: permit NDP 136", wfpRecvV6, true, wfpWeightPermit, icmp6(136)...)
+	add("Private VPN Pro: permit NDP 137", wfpRecvV6, true, wfpWeightPermit, append(icmp6(137), condV6(wfpFieldRemoteAddr, pfxLinkLocalV6))...)
 	// LAN.
 	if s.AllowLAN {
 		var out4, in4 []wfpCond
@@ -247,14 +247,14 @@ func buildWFPFilters(s wfpSpec) []wfpFilter {
 			in4 = append(in4, condV4(wfpFieldRemoteAddr, netip.MustParsePrefix(p)))
 		}
 		out4 = append(out4, condV4(wfpFieldRemoteAddr, pfxMulticastV4), condV4(wfpFieldRemoteAddr, pfxBroadcastV4))
-		add("PrivateVPN: permit LAN", wfpConnectV4, true, wfpWeightLAN, out4...)
-		add("PrivateVPN: permit LAN", wfpRecvV4, true, wfpWeightLAN, in4...)
-		add("PrivateVPN: permit LAN", wfpConnectV6, true, wfpWeightLAN, condV6(wfpFieldRemoteAddr, pfxLinkLocalV6), condV6(wfpFieldRemoteAddr, pfxMulticastV6))
-		add("PrivateVPN: permit LAN", wfpRecvV6, true, wfpWeightLAN, condV6(wfpFieldRemoteAddr, pfxLinkLocalV6))
+		add("Private VPN Pro: permit LAN", wfpConnectV4, true, wfpWeightLAN, out4...)
+		add("Private VPN Pro: permit LAN", wfpRecvV4, true, wfpWeightLAN, in4...)
+		add("Private VPN Pro: permit LAN", wfpConnectV6, true, wfpWeightLAN, condV6(wfpFieldRemoteAddr, pfxLinkLocalV6), condV6(wfpFieldRemoteAddr, pfxMulticastV6))
+		add("Private VPN Pro: permit LAN", wfpRecvV6, true, wfpWeightLAN, condV6(wfpFieldRemoteAddr, pfxLinkLocalV6))
 	}
 	// Everything else.
 	for _, l := range wfpAllLayers {
-		add("PrivateVPN: block all", l, false, wfpWeightBlock)
+		add("Private VPN Pro: block all", l, false, wfpWeightBlock)
 	}
 	return fs
 }

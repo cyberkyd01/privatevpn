@@ -1,4 +1,4 @@
-/* PrivateVPN web UI. Light/dark via prefers-color-scheme, overridable with
+/* Private VPN Pro web UI. Light/dark via prefers-color-scheme, overridable with
    <html data-theme="light|dark"> (Settings → Theme). No inline styles (CSP). */
 
 :root {

@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
 	"golang.org/x/net/dns/dnsmessage"
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv4"
@@ -365,7 +365,7 @@ func TestIntegration(t *testing.T) {
 				return err
 			}
 			defer pc.Close()
-			msg, _ := (&icmp.Message{Type: ipv4.ICMPTypeEcho, Body: &icmp.Echo{ID: 7, Seq: 1, Data: []byte("pvn")}}).Marshal(nil)
+			msg, _ := (&icmp.Message{Type: ipv4.ICMPTypeEcho, Body: &icmp.Echo{ID: 7, Seq: 1, Data: []byte("pvp")}}).Marshal(nil)
 			pc.SetDeadline(time.Now().Add(time.Second))
 			if _, err := pc.Write(msg); err != nil {
 				return err

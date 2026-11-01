@@ -14,7 +14,7 @@
 // routes, replaced atomically on a re-Up or SetEndpoint, and — deliberately —
 // survives the helper or main process crashing and a reboot (BFE persistence,
 // a LaunchDaemon, a systemd unit): only an explicit Down removes it.
-// `privatevpn unblock` (elevated) is the manual recovery.
+// `private-vpn-pro unblock` (elevated) is the manual recovery.
 package tunnel
 
 import (

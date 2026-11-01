@@ -17,7 +17,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cyberkyd01/privatevpn/core/api"
+	"github.com/cyberkyd01/private-vpn-pro/core/api"
 )
 
 // ---------------------------------------------------------------------------
@@ -311,7 +311,7 @@ func TestLoginFlowAndCookieAttributes(t *testing.T) {
 		t.Fatalf("Set-Cookie: %v", sc)
 	}
 	c := sc[0]
-	for _, want := range []string{"pvn_s=", "HttpOnly", "SameSite=Strict", "Path=/"} {
+	for _, want := range []string{"pvp_s=", "HttpOnly", "SameSite=Strict", "Path=/"} {
 		if !strings.Contains(c, want) {
 			t.Errorf("Set-Cookie %q lacks %q", c, want)
 		}
@@ -515,7 +515,7 @@ func TestCookieTossingDoesNotShadow(t *testing.T) {
 	s, _, _ := newTestServer(t)
 	cookie, _ := login(t, s)
 	r := httptest.NewRequest("GET", "http://"+testHost+"/api/v1/status", nil)
-	r.Header.Set("Cookie", "pvn_s=attacker; pvn_s="+cookie)
+	r.Header.Set("Cookie", "pvp_s=attacker; pvp_s="+cookie)
 	w := httptest.NewRecorder()
 	s.ServeHTTP(w, r)
 	if w.Code != 200 {
@@ -656,7 +656,7 @@ func TestBodyLimits(t *testing.T) {
 func TestSecurityHeadersEverywhere(t *testing.T) {
 	s, b, _ := newTestServer(t)
 	cookie, csrf := login(t, s)
-	b.results[api.KeyringReveal] = []byte(`{"key_text":"PVN1-AAAAA"}`)
+	b.results[api.KeyringReveal] = []byte(`{"key_text":"PVP1-AAAAA"}`)
 	reqs := []struct {
 		method, path, body string
 		opts               []reqOpt
@@ -728,7 +728,7 @@ func TestRouteTableMapping(t *testing.T) {
 	}{
 		{"GET", "/status", "", api.StatusGet, map[string]any{}},
 		{"GET", "/keyring", "", api.KeyringList, map[string]any{}},
-		{"POST", "/keyring", `{"key_text":"PVN1-X","label":"Home"}`, api.KeyringAdd, map[string]any{"key_text": "PVN1-X", "label": "Home"}},
+		{"POST", "/keyring", `{"key_text":"PVP1-X","label":"Home"}`, api.KeyringAdd, map[string]any{"key_text": "PVP1-X", "label": "Home"}},
 		{"POST", "/keyring/create", `{"label":"Mine"}`, api.KeyringCreate, map[string]any{"label": "Mine"}},
 		{"POST", "/keyring/create", "", api.KeyringCreate, map[string]any{}},
 		{"PATCH", "/keyring/k-1", `{"label":"New"}`, api.KeyringRename, map[string]any{"id": "k-1", "label": "New"}},
@@ -739,7 +739,7 @@ func TestRouteTableMapping(t *testing.T) {
 		{"POST", "/gateway/enable", "", api.GatewayEnable, map[string]any{}},
 		{"POST", "/gateway/disable", "", api.GatewayDisable, map[string]any{}},
 		{"GET", "/gateways", "", api.GatewaysList, map[string]any{}},
-		{"POST", "/gateways/gw_PUB-key/unlock", `{"key_text":"PVN1-Y"}`, api.GatewaysUnlock, map[string]any{"gateway_id": "gw_PUB-key", "key_text": "PVN1-Y"}},
+		{"POST", "/gateways/gw_PUB-key/unlock", `{"key_text":"PVP1-Y"}`, api.GatewaysUnlock, map[string]any{"gateway_id": "gw_PUB-key", "key_text": "PVP1-Y"}},
 		{"POST", "/gateways/manual", `{"label":"L","host":"h.example","ctrl_port":51821}`, api.GatewaysManualAdd, map[string]any{"label": "L", "host": "h.example", "ctrl_port": float64(51821)}},
 		{"DELETE", "/gateways/manual/m-1", "", api.GatewaysManualRm, map[string]any{"id": "m-1"}},
 		{"GET", "/gateways/gwid/info", "", api.GatewaysInfo, map[string]any{"gateway_id": "gwid"}},
@@ -838,7 +838,7 @@ func TestErrorStatusMapping(t *testing.T) {
 func TestQRPNG(t *testing.T) {
 	s, b, _ := newTestServer(t)
 	cookie, _ := login(t, s)
-	b.results[api.KeyringReveal] = []byte(`{"key_text":"PVN1-K7Q2M-ZB3XW-AAAAA-BBBBB-CCCCC-DDDDD-EEEEE-FFFFF-GGGGG-HHHHH-IIIII"}`)
+	b.results[api.KeyringReveal] = []byte(`{"key_text":"PVP1-K7Q2M-ZB3XW-AAAAA-BBBBB-CCCCC-DDDDD-EEEEE-FFFFF-GGGGG-HHHHH-IIIII"}`)
 	w := do(s, "GET", "/api/v1/keyring/entry-1/qr.png", "", withCookie(cookie), withHeader("Sec-Fetch-Site", "same-origin"))
 	if w.Code != 200 {
 		t.Fatalf("qr: %d %s", w.Code, w.Body)

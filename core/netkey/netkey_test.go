@@ -11,7 +11,7 @@ func TestTextRoundTrip(t *testing.T) {
 		t.Fatal(err)
 	}
 	txt := k.Text()
-	if len(txt) != 70 || !strings.HasPrefix(txt, "PVN1-") {
+	if len(txt) != 70 || !strings.HasPrefix(txt, "PVP1-") {
 		t.Fatalf("text form %q (%d chars)", txt, len(txt))
 	}
 	got, err := Parse(" " + strings.ToLower(txt) + "\n")
@@ -30,7 +30,7 @@ func TestParseRejects(t *testing.T) {
 	} else {
 		b[10] = 'A'
 	}
-	for _, s := range []string{"", "PVN1", "PVN2" + txt[4:], string(b), txt + "AAAAA", strings.Repeat("A", 300)} {
+	for _, s := range []string{"", "PVP1", "PVP2" + txt[4:], string(b), txt + "AAAAA", strings.Repeat("A", 300)} {
 		if _, err := Parse(s); err == nil {
 			t.Errorf("accepted %q", s)
 		}

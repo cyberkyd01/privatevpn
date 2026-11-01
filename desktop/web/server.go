@@ -23,7 +23,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cyberkyd01/privatevpn/core/api"
+	"github.com/cyberkyd01/private-vpn-pro/core/api"
 )
 
 // Fixed parameters (ARCHITECTURE §13.4).
@@ -40,8 +40,8 @@ const (
 	sessionRate    = 5 // requests per second on /api/v1/session
 	heartbeatEvery = 20 * time.Second
 
-	cookieName = "pvn_s"
-	csrfHeader = "X-PVN-CSRF"
+	cookieName = "pvp_s"
+	csrfHeader = "X-PVP-CSRF"
 )
 
 // csp is the Content-Security-Policy, verbatim from §13.4.

@@ -90,7 +90,7 @@ func TestKillSwitchStates(t *testing.T) {
 	if !st.Unprotected || iconFor(st) != iconWarning || statusLine(st) != "Connected to Home — not fully protected" {
 		t.Errorf("unprotected: %+v %q", st, statusLine(st))
 	}
-	if st.FirstProblem != "IPv6 traffic could not be blocked" || problemLine(st) != "⚠ 2 problems — open PrivateVPN for details" {
+	if st.FirstProblem != "IPv6 traffic could not be blocked" || problemLine(st) != "⚠ 2 problems — open Private VPN Pro for details" {
 		t.Errorf("problems: %+v %q", st, problemLine(st))
 	}
 	// Resuming after a restart.

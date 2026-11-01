@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
-	"github.com/cyberkyd01/privatevpn/core/wire"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/wire"
 )
 
 type fakeHandler struct {

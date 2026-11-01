@@ -9,7 +9,7 @@ import (
 )
 
 func TestOpenUpdateReload(t *testing.T) {
-	dir := filepath.Join(t.TempDir(), "pvn")
+	dir := filepath.Join(t.TempDir(), "pvp")
 	s, err := Open(dir, func(st *State) {
 		if st.DeviceName == "" {
 			st.DeviceName = "PC-TEST"

@@ -20,7 +20,7 @@ import (
 	"golang.org/x/sys/unix"
 	"golang.zx2c4.com/wireguard/tun"
 
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
 )
 
 // macOS client tunnel (§9.3), run inside the root helper.
@@ -30,7 +30,7 @@ import (
 // gateway endpoint stays reachable even before a default route exists (boot)
 // and interface-bound sockets cannot slip past. The anchor survives the
 // helper and the app; a LaunchDaemon re-installs it at boot from a small
-// root-owned state file; only Down (or `privatevpn unblock`) removes it.
+// root-owned state file; only Down (or `private-vpn-pro unblock`) removes it.
 const (
 	ifconfigPath     = "/sbin/ifconfig"
 	routePath        = "/sbin/route"
@@ -43,15 +43,15 @@ const (
 	// The DNS backup lives in a root-owned system directory rather than the
 	// user's data dir: the helper is root and must not write through paths
 	// the user controls (symlink attacks), and it must survive a reboot.
-	dnsBackupDir  = "/Library/Application Support/PrivateVPN/run"
+	dnsBackupDir  = "/Library/Application Support/Private VPN Pro/run"
 	dnsBackupFile = "dns-backup.json"
 	ksStateFile   = "killswitch.json"
 
 	// Boot persistence: a LaunchDaemon runs a root-owned copy of the
 	// executable (never the user's, possibly user-writable, app bundle).
-	ksBinDir      = "/Library/Application Support/PrivateVPN/bin"
-	ksBinName     = "privatevpn"
-	ksDaemonLabel = "app.privatevpn.killswitch"
+	ksBinDir      = "/Library/Application Support/Private VPN Pro/bin"
+	ksBinName     = "private-vpn-pro"
+	ksDaemonLabel = "app.privatevpnpro.killswitch"
 	ksDaemonPlist = "/Library/LaunchDaemons/" + ksDaemonLabel + ".plist"
 )
 
@@ -509,7 +509,7 @@ func removeBoot() error {
 	return first
 }
 
-// bootBlock is `privatevpn killswitch-boot`: re-install the block recorded
+// bootBlock is `private-vpn-pro killswitch-boot`: re-install the block recorded
 // by the last session (nothing to do when there is no record).
 func bootBlock(log *eventlog.Log) error {
 	data, err := readRootFile(dnsBackupDir, ksStateFile)

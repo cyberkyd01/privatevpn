@@ -16,31 +16,31 @@ import (
 	"golang.org/x/sys/unix"
 	"golang.zx2c4.com/wireguard/tun"
 
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
 )
 
-// Linux client tunnel (§9.4): pvn0 + wg-quick style policy routing. The
+// Linux client tunnel (§9.4): pvp0 + wg-quick style policy routing. The
 // WireGuard socket carries fwmark 20566, so its packets (and every gateway
 // socket marked the same way, §7.4) use the main table; everything else is
 // sent to table 20566 whose routes are the tunnel and — with the kill
-// switch — a blackhole default with a worse metric: when pvn0 vanishes the
+// switch — a blackhole default with a worse metric: when pvp0 vanishes the
 // kernel drops the tunnel route and the blackhole catches everything that
 // has no specific route in main. Rules and table survive the process; a
 // systemd unit re-installs them at boot; only Down removes them.
 const (
-	linuxIfName = "pvn0"
+	linuxIfName = "pvp0"
 	linuxFwMark = 20566
 
 	resolvConf       = "/etc/resolv.conf"
-	resolvConfBackup = "/etc/resolv.conf.privatevpn-backup"
-	resolvConfTmp    = "/etc/.resolv.conf.privatevpn-tmp"
+	resolvConfBackup = "/etc/resolv.conf.private-vpn-pro-backup"
+	resolvConfTmp    = "/etc/.resolv.conf.private-vpn-pro-tmp"
 	resolvedRunDir   = "/run/systemd/resolve"
 
-	ksStateDir  = "/var/lib/privatevpn"
+	ksStateDir  = "/var/lib/private-vpn-pro"
 	ksStateFile = "killswitch.json"
-	ksBinDir    = "/var/lib/privatevpn/bin"
-	ksBinName   = "privatevpn"
-	ksUnitName  = "privatevpn-killswitch.service"
+	ksBinDir    = "/var/lib/private-vpn-pro/bin"
+	ksBinName   = "private-vpn-pro"
+	ksUnitName  = "private-vpn-pro-killswitch.service"
 	ksUnitDir   = "/etc/systemd/system"
 	ksUnitWants = "/etc/systemd/system/sysinit.target.wants"
 	systemdDir  = "/run/systemd/system"
@@ -97,7 +97,7 @@ type linuxTunnel struct {
 }
 
 // NewNative returns the Linux tunnel. It needs CAP_NET_ADMIN and cleans up
-// leftovers of a previous crash (pvn0; and, unless a kill-switch block is
+// leftovers of a previous crash (pvp0; and, unless a kill-switch block is
 // in place, our rules and the resolv.conf backup).
 func NewNative(log *eventlog.Log) (Tunnel, error) {
 	if !IsElevated() {
@@ -194,7 +194,7 @@ func (t *linuxTunnel) upLocked(cfg Config) (s *linuxSession, err error) {
 	}
 	s.dnsAddr = dns
 	if cfg.KillSwitch {
-		// Block first (rules + blackhole; nothing references pvn0), then
+		// Block first (rules + blackhole; nothing references pvp0), then
 		// the tunnel route that beats the blackhole: traffic is never
 		// routed to the physical network in between.
 		warn, e := t.installBlock("-4", s.mark, s.ep, dns)
@@ -420,7 +420,7 @@ func restoreResolvConf() error {
 }
 
 func writeFileAtomic(path string, data []byte, perm os.FileMode) error {
-	tmp := path + ".pvn-tmp"
+	tmp := path + ".pvp-tmp"
 	_ = os.Remove(tmp)
 	f, err := os.OpenFile(tmp, os.O_WRONLY|os.O_CREATE|os.O_EXCL|unix.O_NOFOLLOW, perm)
 	if err != nil {
@@ -692,7 +692,7 @@ func (t *linuxTunnel) removeBoot() error {
 	return first
 }
 
-// bootBlock is `privatevpn killswitch-boot`: re-install the block recorded
+// bootBlock is `private-vpn-pro killswitch-boot`: re-install the block recorded
 // by the last session (nothing to do when there is no record). No tunnel
 // route is added, so everything but the gateway endpoint and on-link
 // destinations is dropped until the app reconnects or the user disconnects.

@@ -26,11 +26,11 @@ val keystorePath: String? = providers.environmentVariable("ANDROID_KEYSTORE_FILE
 val coreAar = file("libs/core.aar")
 
 android {
-    namespace = "app.privatevpn"
+    namespace = "app.privatevpnpro"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "app.privatevpn"
+        applicationId = "app.privatevpnpro"
         minSdk = 26
         targetSdk = 35
         versionCode = appVersionCode

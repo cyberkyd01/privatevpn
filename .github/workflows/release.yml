@@ -41,16 +41,16 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y -qq nsis
       - name: build
         run: |
-          (cd cmd/privatevpn && go tool go-winres make --arch amd64,arm64 --in ../../build/windows/winres.json \
+          (cd cmd/private-vpn-pro && go tool go-winres make --arch amd64,arm64 --in ../../build/windows/winres.json \
             --product-version "${TAG#v}" --file-version "${TAG#v}")
           for arch in amd64 arm64; do
-            out="dist/privatevpn-windows-$arch"
+            out="dist/private-vpn-pro-windows-$arch"
             CGO_ENABLED=0 GOOS=windows GOARCH=$arch go build -trimpath \
-              -ldflags "-s -w -H windowsgui -X main.version=$TAG" -o "$out/privatevpn.exe" ./cmd/privatevpn
+              -ldflags "-s -w -H windowsgui -X main.version=$TAG" -o "$out/private-vpn-pro.exe" ./cmd/private-vpn-pro
             bash build/windows/fetch-wintun.sh "$arch" "$out"
             cp README.md LICENSE "$out/" 2>/dev/null || true
-            bash build/windows/make-installer.sh "$arch" "$TAG" "$out" "dist/privatevpn-windows-$arch-setup.exe"
-            (cd dist && zip -qr "privatevpn-windows-$arch.zip" "privatevpn-windows-$arch")
+            bash build/windows/make-installer.sh "$arch" "$TAG" "$out" "dist/private-vpn-pro-windows-$arch-setup.exe"
+            (cd dist && zip -qr "private-vpn-pro-windows-$arch.zip" "private-vpn-pro-windows-$arch")
           done
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -72,12 +72,12 @@ jobs:
       - name: build
         run: |
           for arch in amd64 arm64; do
-            out="dist/privatevpn-linux-$arch"
+            out="dist/private-vpn-pro-linux-$arch"
             CGO_ENABLED=0 GOOS=linux GOARCH=$arch go build -trimpath \
-              -ldflags "-s -w -X main.version=$TAG" -o "$out/privatevpn" ./cmd/privatevpn
+              -ldflags "-s -w -X main.version=$TAG" -o "$out/private-vpn-pro" ./cmd/private-vpn-pro
             cp build/linux/* "$out/" 2>/dev/null || true
             cp README.md LICENSE "$out/" 2>/dev/null || true
-            tar -C dist -czf "dist/privatevpn-linux-$arch.tar.gz" "privatevpn-linux-$arch"
+            tar -C dist -czf "dist/private-vpn-pro-linux-$arch.tar.gz" "private-vpn-pro-linux-$arch"
           done
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -99,11 +99,11 @@ jobs:
           mkdir -p dist/macos
           for arch in arm64 amd64; do
             CGO_ENABLED=1 GOOS=darwin GOARCH=$arch go build -trimpath \
-              -ldflags "-s -w -X main.version=$TAG" -o "dist/macos/privatevpn-$arch" ./cmd/privatevpn
+              -ldflags "-s -w -X main.version=$TAG" -o "dist/macos/private-vpn-pro-$arch" ./cmd/private-vpn-pro
           done
-          lipo -create -output dist/macos/privatevpn dist/macos/privatevpn-arm64 dist/macos/privatevpn-amd64
-          bash build/macos/make-app.sh dist/macos/privatevpn "$TAG" dist/macos
-          bash build/macos/make-dmg.sh dist/macos/PrivateVPN.app dist/PrivateVPN-macos-universal.dmg
+          lipo -create -output dist/macos/private-vpn-pro dist/macos/private-vpn-pro-arm64 dist/macos/private-vpn-pro-amd64
+          bash build/macos/make-app.sh dist/macos/private-vpn-pro "$TAG" dist/macos
+          bash build/macos/make-dmg.sh "dist/macos/Private VPN Pro.app" dist/private-vpn-pro-macos-universal.dmg
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: macos
@@ -134,7 +134,7 @@ jobs:
           go build -o bin/gomobile/gobind golang.org/x/mobile/cmd/gobind
           export PATH="$PWD/bin/gomobile:$PATH"
           go tool gomobile bind -target android/arm64,android/arm,android/amd64 -androidapi 26 \
-            -javapkg app.privatevpn -trimpath -ldflags "-s -w -X main.version=$TAG" \
+            -javapkg app.privatevpnpro -trimpath -ldflags "-s -w -X main.version=$TAG" \
             -o android/app/libs/core.aar ./mobile
       - name: signed APK
         working-directory: android
@@ -152,7 +152,7 @@ jobs:
           export ANDROID_KEYSTORE_FILE="$RUNNER_TEMP/release.jks"
           ./gradlew --no-daemon assembleRelease -PappVersion="${TAG#v}"
           rm -f "$RUNNER_TEMP/release.jks"
-          mkdir -p ../dist && cp app/build/outputs/apk/release/app-release.apk ../dist/privatevpn-android.apk
+          mkdir -p ../dist && cp app/build/outputs/apk/release/app-release.apk ../dist/private-vpn-pro-android.apk
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: android
@@ -178,15 +178,15 @@ jobs:
           cat > "$RUNNER_TEMP/notes.md" <<'EOF'
           | Device | Download |
           |---|---|
-          | Windows 10/11 (Intel/AMD) | `privatevpn-windows-amd64-setup.exe` (installer), or `privatevpn-windows-amd64.zip` (portable) |
-          | Windows on Arm | `privatevpn-windows-arm64-setup.exe`, or `privatevpn-windows-arm64.zip` |
-          | macOS 11+ (Apple silicon and Intel) | `PrivateVPN-macos-universal.dmg` |
-          | Linux | `privatevpn-linux-amd64.tar.gz`, `privatevpn-linux-arm64.tar.gz` |
-          | Android 8+ | `privatevpn-android.apk` |
+          | Windows 10/11 (Intel/AMD) | `private-vpn-pro-windows-amd64-setup.exe` (installer), or `private-vpn-pro-windows-amd64.zip` (portable) |
+          | Windows on Arm | `private-vpn-pro-windows-arm64-setup.exe`, or `private-vpn-pro-windows-arm64.zip` |
+          | macOS 11+ (Apple silicon and Intel) | `private-vpn-pro-macos-universal.dmg` |
+          | Linux | `private-vpn-pro-linux-amd64.tar.gz`, `private-vpn-pro-linux-arm64.tar.gz` |
+          | Android 8+ | `private-vpn-pro-android.apk` |
 
-          The builds are not code-signed by Microsoft or Apple. Windows: on the SmartScreen prompt choose **More info → Run anyway**. macOS: right-click PrivateVPN → **Open**, or allow it under **System Settings → Privacy & Security**. Check every download against `SHA256SUMS`.
+          The builds are not code-signed by Microsoft or Apple. Windows: on the SmartScreen prompt choose **More info → Run anyway**. macOS: right-click Private VPN Pro → **Open**, or allow it under **System Settings → Privacy & Security**. Check every download against `SHA256SUMS`.
 
-          Setup and the Windows-gateway / Android-phone walkthrough: see the [README](https://github.com/cyberkyd01/privatevpn#readme).
+          Setup and the Windows-gateway / Android-phone walkthrough: see the [README](https://github.com/cyberkyd01/private-vpn-pro#readme).
           EOF
-          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "PrivateVPN $TAG" \
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "Private VPN Pro $TAG" \
             --notes-file "$RUNNER_TEMP/notes.md" ./*

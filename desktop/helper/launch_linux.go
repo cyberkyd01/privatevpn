@@ -13,8 +13,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
-	"github.com/cyberkyd01/privatevpn/core/tunnel"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/tunnel"
 )
 
 const pkexecPath = "/usr/bin/pkexec"
@@ -40,11 +40,11 @@ func launchLinux(ctx context.Context, exe string) (io.ReadWriteCloser, process, 
 		return nil, nil, errors.New("helper: executable path must be absolute")
 	}
 	if _, err := os.Stat(pkexecPath); err != nil {
-		return nil, nil, fmt.Errorf("helper: pkexec not found; install polkit, or grant the capability once with `sudo setcap cap_net_admin+ep %s` and restart PrivateVPN", exe)
+		return nil, nil, fmt.Errorf("helper: pkexec not found; install polkit, or grant the capability once with `sudo setcap cap_net_admin+ep %s` and restart Private VPN Pro", exe)
 	}
 	var dirs []string
 	if x := os.Getenv("XDG_RUNTIME_DIR"); filepath.IsAbs(x) {
-		dirs = append(dirs, filepath.Join(x, "privatevpn"))
+		dirs = append(dirs, filepath.Join(x, "private-vpn-pro"))
 	}
 	dirs = append(dirs, uidDir(os.TempDir()))
 	path, err := socketPath(dirs...)

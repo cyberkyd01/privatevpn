@@ -12,11 +12,11 @@ import (
 )
 
 func TestLaunchAgentPlist(t *testing.T) {
-	p := launchAgentPlist("/Applications/Private & <VPN>.app/Contents/MacOS/privatevpn")
-	if !strings.Contains(p, "<string>/Applications/Private &amp; &lt;VPN&gt;.app/Contents/MacOS/privatevpn</string>") {
+	p := launchAgentPlist("/Applications/Private & <VPN>.app/Contents/MacOS/private-vpn-pro")
+	if !strings.Contains(p, "<string>/Applications/Private &amp; &lt;VPN&gt;.app/Contents/MacOS/private-vpn-pro</string>") {
 		t.Errorf("path not escaped:\n%s", p)
 	}
-	for _, want := range []string{"<string>app.privatevpn</string>", "<string>--autostart</string>", "<key>RunAtLoad</key>\n\t<true/>"} {
+	for _, want := range []string{"<string>app.privatevpnpro</string>", "<string>--autostart</string>", "<key>RunAtLoad</key>\n\t<true/>"} {
 		if !strings.Contains(p, want) {
 			t.Errorf("plist lacks %q", want)
 		}
@@ -35,11 +35,11 @@ func TestLaunchAgentPlist(t *testing.T) {
 }
 
 func TestDesktopEntry(t *testing.T) {
-	e, err := desktopEntry("/opt/Private VPN/privatevpn")
+	e, err := desktopEntry("/opt/Private VPN/private-vpn-pro")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(e, "Exec=\"/opt/Private VPN/privatevpn\" --autostart\n") {
+	if !strings.Contains(e, "Exec=\"/opt/Private VPN/private-vpn-pro\" --autostart\n") {
 		t.Errorf("entry:\n%s", e)
 	}
 	if !strings.HasPrefix(e, "[Desktop Entry]\nType=Application\n") {
@@ -72,7 +72,7 @@ func TestSetAndRemoveInTempHome(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, "cfg"))
-	exe := "/opt/privatevpn/privatevpn"
+	exe := "/opt/private-vpn-pro/private-vpn-pro"
 	if err := set(exe, true); err != nil {
 		t.Fatal(err)
 	}
@@ -82,9 +82,9 @@ func TestSetAndRemoveInTempHome(t *testing.T) {
 	}
 	var path string
 	if runtime.GOOS == "darwin" {
-		path = filepath.Join(home, "Library", "LaunchAgents", "app.privatevpn.plist")
+		path = filepath.Join(home, "Library", "LaunchAgents", "app.privatevpnpro.plist")
 	} else {
-		path = filepath.Join(home, "cfg", "autostart", "privatevpn.desktop")
+		path = filepath.Join(home, "cfg", "autostart", "private-vpn-pro.desktop")
 	}
 	b, err := os.ReadFile(path)
 	if err != nil || !strings.Contains(string(b), exe) || !strings.Contains(string(b), Flag) {

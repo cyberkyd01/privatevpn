@@ -25,7 +25,7 @@ func sanitizeEnv() {
 }
 
 type helperOpts struct {
-	pipe string // bare name: privatevpn-helper-<16 hex>
+	pipe string // bare name: private-vpn-pro-helper-<16 hex>
 	sid  string
 }
 

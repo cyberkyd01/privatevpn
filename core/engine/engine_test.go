@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cyberkyd01/privatevpn/core/control"
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
-	"github.com/cyberkyd01/privatevpn/core/netkey"
-	"github.com/cyberkyd01/privatevpn/core/tunnel"
-	"github.com/cyberkyd01/privatevpn/core/wire"
+	"github.com/cyberkyd01/private-vpn-pro/core/control"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/netkey"
+	"github.com/cyberkyd01/private-vpn-pro/core/tunnel"
+	"github.com/cyberkyd01/private-vpn-pro/core/wire"
 )
 
 func newTestEngine(t *testing.T) *Engine {
@@ -76,7 +76,7 @@ func TestLockedThenUnlock(t *testing.T) {
 	}
 	id := g["id"].(string)
 
-	if _, code := call(t, e, "gateways.unlock", map[string]any{"gateway_id": id, "key_text": "PVN1-nope"}); code != "key_format" {
+	if _, code := call(t, e, "gateways.unlock", map[string]any{"gateway_id": id, "key_text": "PVP1-nope"}); code != "key_format" {
 		t.Fatalf("bad key text: %s", code)
 	}
 	other, _ := netkey.Generate()

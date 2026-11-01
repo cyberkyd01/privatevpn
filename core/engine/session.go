@@ -15,13 +15,13 @@ import (
 
 	"golang.org/x/net/dns/dnsmessage"
 
-	"github.com/cyberkyd01/privatevpn/core/api"
-	"github.com/cyberkyd01/privatevpn/core/control"
-	"github.com/cyberkyd01/privatevpn/core/netbind"
-	"github.com/cyberkyd01/privatevpn/core/netkey"
-	"github.com/cyberkyd01/privatevpn/core/state"
-	"github.com/cyberkyd01/privatevpn/core/tunnel"
-	"github.com/cyberkyd01/privatevpn/core/wire"
+	"github.com/cyberkyd01/private-vpn-pro/core/api"
+	"github.com/cyberkyd01/private-vpn-pro/core/control"
+	"github.com/cyberkyd01/private-vpn-pro/core/netbind"
+	"github.com/cyberkyd01/private-vpn-pro/core/netkey"
+	"github.com/cyberkyd01/private-vpn-pro/core/state"
+	"github.com/cyberkyd01/private-vpn-pro/core/tunnel"
+	"github.com/cyberkyd01/private-vpn-pro/core/wire"
 )
 
 // Client session timing (§6.5, §9.1); atomic so tests can shorten them
@@ -119,7 +119,7 @@ func (c *core) clientConnectH(args []byte) (any, *api.Error) {
 	c.mu.Unlock()
 	if gwOn && !netbind.CanMark() {
 		return nil, api.Errf(api.CodeConflict, http.StatusConflict,
-			"dual role on Linux needs CAP_NET_ADMIN (setcap cap_net_admin+ep privatevpn); turn gateway mode off before connecting")
+			"dual role on Linux needs CAP_NET_ADMIN (setcap cap_net_admin+ep private-vpn-pro); turn gateway mode off before connecting")
 	}
 	inherit := false
 	if old != nil {
@@ -256,7 +256,7 @@ func (c *core) unblockLeftover() *api.Error {
 	}
 	if err := t.Down(); err != nil {
 		c.dropTunnel()
-		return api.Errf(api.CodeElevation, http.StatusForbidden, "the block could not be removed (%s) — try again, run \"privatevpn unblock\" as administrator, or restart the computer", errClass(err))
+		return api.Errf(api.CodeElevation, http.StatusForbidden, "the block could not be removed (%s) — try again, run \"private-vpn-pro unblock\" as administrator, or restart the computer", errClass(err))
 	}
 	c.setKillSwitchEngaged(false)
 	netbind.SetBypass(false)
@@ -289,7 +289,7 @@ func (c *core) endSession(s *session, reason string) (aerr *api.Error) {
 			if err != nil {
 				c.log.Printf("client", "tunnel down: %s", errClass(err))
 				c.dropTunnel()
-				aerr = api.Errf(api.CodeElevation, http.StatusForbidden, "the tunnel could not be removed (%s) — Disconnect again, run \"privatevpn unblock\" as administrator, or restart the computer", errClass(err))
+				aerr = api.Errf(api.CodeElevation, http.StatusForbidden, "the tunnel could not be removed (%s) — Disconnect again, run \"private-vpn-pro unblock\" as administrator, or restart the computer", errClass(err))
 			} else {
 				c.setKillSwitchEngaged(false)
 			}

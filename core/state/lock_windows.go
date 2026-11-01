@@ -8,7 +8,7 @@ import (
 )
 
 // ErrAlreadyRunning means another instance holds the lock.
-var ErrAlreadyRunning = errors.New("PrivateVPN is already running")
+var ErrAlreadyRunning = errors.New("Private VPN Pro is already running")
 
 // Lock is a held single-instance lock.
 type Lock struct{ h windows.Handle }

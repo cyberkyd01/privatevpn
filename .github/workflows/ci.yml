@@ -30,7 +30,7 @@ jobs:
       - name: cross-build
         run: |
           for t in windows/amd64 windows/arm64 linux/amd64 linux/arm64; do
-            CGO_ENABLED=0 GOOS=${t%/*} GOARCH=${t#*/} go build -trimpath -o /dev/null ./cmd/privatevpn
+            CGO_ENABLED=0 GOOS=${t%/*} GOARCH=${t#*/} go build -trimpath -o /dev/null ./cmd/private-vpn-pro
           done
           CGO_ENABLED=0 GOOS=android GOARCH=arm64 go build -o /dev/null ./mobile
 
@@ -44,11 +44,11 @@ jobs:
       - name: vet and build
         run: |
           go vet ./...
-          CGO_ENABLED=1 go build -trimpath -o dist/privatevpn ./cmd/privatevpn
+          CGO_ENABLED=1 go build -trimpath -o dist/private-vpn-pro ./cmd/private-vpn-pro
       - name: app and disk image
         run: |
-          bash build/macos/make-app.sh dist/privatevpn v0.0.0 dist
-          bash build/macos/make-dmg.sh dist/PrivateVPN.app dist/PrivateVPN.dmg
+          bash build/macos/make-app.sh dist/private-vpn-pro v0.0.0 dist
+          bash build/macos/make-dmg.sh "dist/Private VPN Pro.app" dist/private-vpn-pro.dmg
 
   windows-installer:
     runs-on: ubuntu-latest
@@ -61,9 +61,9 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y -qq nsis
       - name: build installer
         run: |
-          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-H windowsgui" -o dist/win/privatevpn.exe ./cmd/privatevpn
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-H windowsgui" -o dist/win/private-vpn-pro.exe ./cmd/private-vpn-pro
           bash build/windows/fetch-wintun.sh amd64 dist/win
-          bash build/windows/make-installer.sh amd64 v0.0.0 dist/win dist/privatevpn-windows-amd64-setup.exe
+          bash build/windows/make-installer.sh amd64 v0.0.0 dist/win dist/private-vpn-pro-windows-amd64-setup.exe
 
   android:
     runs-on: ubuntu-latest
@@ -87,7 +87,7 @@ jobs:
           go build -o bin/gomobile/gobind golang.org/x/mobile/cmd/gobind
           export PATH="$PWD/bin/gomobile:$PATH"
           go tool gomobile bind -target android/arm64,android/arm,android/amd64 -androidapi 26 \
-            -javapkg app.privatevpn -trimpath -ldflags "-s -w" -o android/app/libs/core.aar ./mobile
+            -javapkg app.privatevpnpro -trimpath -ldflags "-s -w" -o android/app/libs/core.aar ./mobile
       - name: assembleDebug
         working-directory: android
         run: ./gradlew --no-daemon assembleDebug

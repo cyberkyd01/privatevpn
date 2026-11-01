@@ -36,7 +36,7 @@ import (
 const (
 	nicID     = 1
 	queueSize = 512
-	ifName    = "pvn-gw"
+	ifName    = "pvp-gw"
 )
 
 // gVisor logs to stderr through a process-wide logger, some of it captured

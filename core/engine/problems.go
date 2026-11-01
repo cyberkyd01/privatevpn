@@ -1,6 +1,6 @@
 package engine
 
-import "github.com/cyberkyd01/privatevpn/core/state"
+import "github.com/cyberkyd01/private-vpn-pro/core/state"
 
 // problem is one entry of status.problems: everything the user should know
 // is wrong, in plain words, with a suggested action for the UI.
@@ -20,7 +20,7 @@ var tunnelWarnings = map[string]problem{
 	"kill_switch_failed": {Severity: "error", Action: "reconnect",
 		Message: "The kill switch could not be installed — if the VPN drops, traffic would use your real IP. Reconnect to try again."},
 	"kill_switch_not_persistent": {Severity: "warning",
-		Message: "The kill switch works now but could not be set up to survive a restart — right after rebooting, apps could use your real IP until PrivateVPN reconnects."},
+		Message: "The kill switch works now but could not be set up to survive a restart — right after rebooting, apps could use your real IP until Private VPN Pro reconnects."},
 	"lan_not_blocked": {Severity: "info",
 		Message: "Devices on your local network stay reachable while the kill switch blocks the Internet (this system cannot block the local network)."},
 	"dns_not_blocked": {Severity: "warning",

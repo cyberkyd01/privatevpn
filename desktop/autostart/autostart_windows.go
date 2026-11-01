@@ -11,7 +11,7 @@ import (
 
 const (
 	runKey    = `Software\Microsoft\Windows\CurrentVersion\Run`
-	valueName = "PrivateVPN"
+	valueName = "Private VPN Pro"
 )
 
 // runValue is the HKCU Run command line: "<exe>" --autostart.

@@ -14,13 +14,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
-	"github.com/cyberkyd01/privatevpn/core/tunnel"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/tunnel"
 )
 
 // Version is this binary's version, compared with the caller's in hello.
-// cmd/privatevpn sets it before calling Run (or links it with
-// -X github.com/cyberkyd01/privatevpn/desktop/helper.Version=…).
+// cmd/private-vpn-pro sets it before calling Run (or links it with
+// -X github.com/cyberkyd01/private-vpn-pro/desktop/helper.Version=…).
 var Version = "dev"
 
 // Exit codes of Run (126/127 are left to pkexec).
@@ -37,10 +37,10 @@ const (
 // itself gives up after 60 s.
 const acceptTimeout = 75 * time.Second
 
-// Run is the `privatevpn tunnel-helper` entry point. args are the arguments
+// Run is the `private-vpn-pro tunnel-helper` entry point. args are the arguments
 // after the subcommand (a leading "tunnel-helper" is tolerated):
 //
-//	Windows:     --pipe privatevpn-helper-<16 hex> --sid <user SID>
+//	Windows:     --pipe private-vpn-pro-helper-<16 hex> --sid <user SID>
 //	macOS/Linux: --socket <dir>/helper-<16 hex>.sock --uid <n>
 //
 // It refuses to run unelevated, cleans up tunnel leftovers of a previous

@@ -29,7 +29,7 @@
     <uses-feature android:name="android.hardware.wifi" android:required="false" />
 
     <application
-        android:name=".PvnApplication"
+        android:name=".PvpApplication"
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -38,7 +38,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.PrivateVPN"
+        android:theme="@style/Theme.PrivateVPNPro"
         tools:targetApi="35">
 
         <activity
@@ -60,7 +60,7 @@
              which is the case here (§9.5). No other permission may be added
              (§11.1). -->
         <service
-            android:name=".vpn.PvnVpnService"
+            android:name=".vpn.PvpVpnService"
             android:exported="false"
             android:foregroundServiceType="systemExempted"
             android:permission="android.permission.BIND_VPN_SERVICE"

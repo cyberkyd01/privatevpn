@@ -4,8 +4,8 @@ import (
 	"net/netip"
 	"time"
 
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
-	"github.com/cyberkyd01/privatevpn/core/gwstack"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/gwstack"
 )
 
 // lease is one client's state (§8.2). Memory only, never serialised;

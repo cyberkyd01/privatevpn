@@ -1,4 +1,4 @@
-// Package eventlog is the only logging facility in PrivateVPN.
+// Package eventlog is the only logging facility in Private VPN Pro.
 //
 // It is an in-memory ring buffer; nothing is ever written to disk or to a
 // system log (ARCHITECTURE §12). Callers must never log client addresses,

@@ -1,4 +1,4 @@
-module github.com/cyberkyd01/privatevpn
+module github.com/cyberkyd01/private-vpn-pro
 
 go 1.27.3
 

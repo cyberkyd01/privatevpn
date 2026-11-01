@@ -9,13 +9,13 @@ import (
 
 func desktopPath() (string, error) {
 	if d := os.Getenv("XDG_CONFIG_HOME"); filepath.IsAbs(d) {
-		return filepath.Join(d, "autostart", "privatevpn.desktop"), nil
+		return filepath.Join(d, "autostart", "private-vpn-pro.desktop"), nil
 	}
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, ".config", "autostart", "privatevpn.desktop"), nil
+	return filepath.Join(home, ".config", "autostart", "private-vpn-pro.desktop"), nil
 }
 
 func set(exe string, on bool) error {

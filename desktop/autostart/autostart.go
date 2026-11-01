@@ -1,12 +1,12 @@
 //go:build !android
 
-// Package autostart registers PrivateVPN to start at login with the
+// Package autostart registers Private VPN Pro to start at login with the
 // --autostart flag (ARCHITECTURE §13.6), always for the current user and
 // without privileges:
 //
-//   - Windows: HKCU\Software\Microsoft\Windows\CurrentVersion\Run\PrivateVPN
-//   - macOS:   ~/Library/LaunchAgents/app.privatevpn.plist (RunAtLoad)
-//   - Linux:   $XDG_CONFIG_HOME/autostart/privatevpn.desktop
+//   - Windows: HKCU\Software\Microsoft\Windows\CurrentVersion\Run\Private VPN Pro
+//   - macOS:   ~/Library/LaunchAgents/app.privatevpnpro.plist (RunAtLoad)
+//   - Linux:   $XDG_CONFIG_HOME/autostart/private-vpn-pro.desktop
 //
 // Autostart restores gateway mode if it was on; it never connects a client
 // tunnel (that would ask for elevation at logon) — that rule lives in the
@@ -26,7 +26,7 @@ const Flag = "--autostart"
 
 // ErrNotInstalled is returned when the running binary is a temporary build
 // (go run) that would vanish; registering it would leave a dead entry.
-var ErrNotInstalled = errors.New("autostart: run an installed copy of PrivateVPN to enable start at login")
+var ErrNotInstalled = errors.New("autostart: run an installed copy of Private VPN Pro to enable start at login")
 
 // executable returns the absolute path of the running binary.
 func executable() (string, error) {
@@ -68,7 +68,7 @@ func launchAgentPlist(exe string) string {
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>app.privatevpn</string>
+	<string>app.privatevpnpro</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>` + esc.String() + `</string>
@@ -120,10 +120,10 @@ func desktopEntry(exe string) (string, error) {
 	}
 	return "[Desktop Entry]\n" +
 		"Type=Application\n" +
-		"Name=PrivateVPN\n" +
+		"Name=Private VPN Pro\n" +
 		"Comment=Private VPN gateways for your own devices\n" +
 		"Exec=" + arg + " " + Flag + "\n" +
-		"Icon=privatevpn\n" +
+		"Icon=private-vpn-pro\n" +
 		"Terminal=false\n" +
 		"Categories=Network;\n" +
 		"X-GNOME-Autostart-enabled=true\n", nil
@@ -135,7 +135,7 @@ func writeFileAtomic(path, data string) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}
-	f, err := os.CreateTemp(filepath.Dir(path), ".privatevpn-*.tmp")
+	f, err := os.CreateTemp(filepath.Dir(path), ".private-vpn-pro-*.tmp")
 	if err != nil {
 		return err
 	}

@@ -128,8 +128,8 @@ type sessionRef struct {
 	csrf string
 }
 
-// lookup validates the pvn_s cookie(s) and refreshes the idle timer. Every
-// cookie named pvn_s is tried, so a cookie "tossed" by another 127.0.0.1
+// lookup validates the pvp_s cookie(s) and refreshes the idle timer. Every
+// cookie named pvp_s is tried, so a cookie "tossed" by another 127.0.0.1
 // origin cannot shadow the real one.
 func (a *authState) lookup(r *http.Request, now time.Time) (sessionRef, bool) {
 	cookies := r.CookiesNamed(cookieName)
@@ -209,7 +209,7 @@ func (a *authState) detachStream(k [32]byte, stop chan struct{}) {
 	}
 }
 
-// csrfOK: exactly one X-PVN-CSRF header equal to the session's token.
+// csrfOK: exactly one X-PVP-CSRF header equal to the session's token.
 func csrfOK(r *http.Request, want string) bool {
 	v := r.Header.Values(csrfHeader)
 	return len(v) == 1 && want != "" && subtle.ConstantTimeCompare([]byte(v[0]), []byte(want)) == 1

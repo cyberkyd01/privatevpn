@@ -7,7 +7,7 @@
   "RT_MANIFEST": {
     "#1": {
       "0409": {
-        "description": "PrivateVPN",
+        "description": "Private VPN Pro",
         "minimum-os": "win10",
         "execution-level": "as invoker",
         "ui-access": false,
@@ -35,13 +35,13 @@
         "info": {
           "0409": {
             "Comments": "Private VPN gateways for your own devices",
-            "CompanyName": "PrivateVPN",
-            "FileDescription": "PrivateVPN",
+            "CompanyName": "Private VPN Pro",
+            "FileDescription": "Private VPN Pro",
             "FileVersion": "0.0.0",
-            "InternalName": "privatevpn",
+            "InternalName": "private-vpn-pro",
             "LegalCopyright": "",
-            "OriginalFilename": "privatevpn.exe",
-            "ProductName": "PrivateVPN",
+            "OriginalFilename": "private-vpn-pro.exe",
+            "ProductName": "Private VPN Pro",
             "ProductVersion": "0.0.0"
           }
         }

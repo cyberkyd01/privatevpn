@@ -61,7 +61,7 @@ func TestSmallValidators(t *testing.T) {
 	if isHex16("0123456789ABCDEF") || isHex16("0123456789abcde") {
 		t.Error("isHex16")
 	}
-	if !validPipeName("privatevpn-helper-0123456789abcdef") || validPipeName("privatevpn-helper-../../x") || validPipeName("other-0123456789abcdef") {
+	if !validPipeName("private-vpn-pro-helper-0123456789abcdef") || validPipeName("private-vpn-pro-helper-../../x") || validPipeName("other-0123456789abcdef") {
 		t.Error("validPipeName")
 	}
 	for _, ok := range []string{"S-1-5-21-3623811015-3361044348-30300820-1013", "S-1-12-1-1234-5678-9012-3456"} {
@@ -80,21 +80,21 @@ func TestSmallValidators(t *testing.T) {
 }
 
 func TestAppleScriptCommand(t *testing.T) {
-	got, err := appleScriptHelperCommand("/Applications/PrivateVPN.app/Contents/MacOS/privatevpn",
-		"/var/folders/zz/abc_123/T/privatevpn-501/helper-0123456789abcdef.sock", 501)
-	want := `do shell script "'/Applications/PrivateVPN.app/Contents/MacOS/privatevpn' tunnel-helper --socket '/var/folders/zz/abc_123/T/privatevpn-501/helper-0123456789abcdef.sock' --uid 501" with administrator privileges`
+	got, err := appleScriptHelperCommand("/Applications/Private VPN Pro.app/Contents/MacOS/private-vpn-pro",
+		"/var/folders/zz/abc_123/T/private-vpn-pro-501/helper-0123456789abcdef.sock", 501)
+	want := `do shell script "'/Applications/Private VPN Pro.app/Contents/MacOS/private-vpn-pro' tunnel-helper --socket '/var/folders/zz/abc_123/T/private-vpn-pro-501/helper-0123456789abcdef.sock' --uid 501" with administrator privileges`
 	if err != nil || got != want {
 		t.Fatalf("got  %s\nwant %s\n(%v)", got, want, err)
 	}
-	if got, err := appleScriptHelperCommand("/Users/a b/My Apps/privatevpn", "/tmp/privatevpn-501/helper-0123456789abcdef.sock", 501); err != nil ||
-		!strings.Contains(got, `"'/Users/a b/My Apps/privatevpn' tunnel-helper`) {
+	if got, err := appleScriptHelperCommand("/Users/a b/My Apps/private-vpn-pro", "/tmp/private-vpn-pro-501/helper-0123456789abcdef.sock", 501); err != nil ||
+		!strings.Contains(got, `"'/Users/a b/My Apps/private-vpn-pro' tunnel-helper`) {
 		t.Errorf("spaces: %s %v", got, err)
 	}
 	for _, exe := range []string{
-		"relative/privatevpn", "/a'b/privatevpn", `/a"b/privatevpn`, `/a\b/privatevpn`, "/a$(id)/privatevpn",
-		"/a`id`/privatevpn", "/a;b/privatevpn", "/a\nb/privatevpn", "/a&b", "/a|b", "/é/privatevpn", "/a*b", "",
+		"relative/private-vpn-pro", "/a'b/private-vpn-pro", `/a"b/private-vpn-pro`, `/a\b/private-vpn-pro`, "/a$(id)/private-vpn-pro",
+		"/a`id`/private-vpn-pro", "/a;b/private-vpn-pro", "/a\nb/private-vpn-pro", "/a&b", "/a|b", "/é/private-vpn-pro", "/a*b", "",
 	} {
-		if _, err := appleScriptHelperCommand(exe, "/tmp/privatevpn-501/helper-0123456789abcdef.sock", 501); err == nil {
+		if _, err := appleScriptHelperCommand(exe, "/tmp/private-vpn-pro-501/helper-0123456789abcdef.sock", 501); err == nil {
 			t.Errorf("exe %q accepted", exe)
 		}
 	}

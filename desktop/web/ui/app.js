@@ -1,4 +1,4 @@
-/* PrivateVPN web UI — vanilla ES2020, no framework, no build step.
+/* Private VPN Pro web UI — vanilla ES2020, no framework, no build step.
  *
  * Security rules (ARCHITECTURE §10.6, §13.4, T7):
  *  - no HTML parsing of strings anywhere (no inner/outer HTML assignment, no
@@ -170,7 +170,7 @@
 
   async function api(method, path, body) {
     const init = { method, headers: {}, credentials: 'same-origin', cache: 'no-store', redirect: 'error' };
-    if (method !== 'GET' && csrf) init.headers['X-PVN-CSRF'] = csrf;
+    if (method !== 'GET' && csrf) init.headers['X-PVP-CSRF'] = csrf;
     if (body !== undefined) {
       init.headers['Content-Type'] = 'application/json';
       init.body = JSON.stringify(body);
@@ -179,7 +179,7 @@
     try {
       res = await fetch(API + path, init);
     } catch (_) {
-      throw new ApiError('offline', 'PrivateVPN is not responding. Is it still running?', 0);
+      throw new ApiError('offline', 'Private VPN Pro is not responding. Is it still running?', 0);
     }
     let data = null;
     try {
@@ -196,7 +196,7 @@
   }
 
   const ERR_TEXT = {
-    key_format: "That doesn't look like a PrivateVPN key. Check for typos — it starts with PVN1-.",
+    key_format: "That doesn't look like a Private VPN Pro key. Check for typos — it starts with PVP1-.",
     key_mismatch: "This key doesn't belong to this gateway's network.",
     unreachable: 'The gateway did not respond. Check that it is online and reachable from this device.',
     timeout: 'The gateway did not respond in time.',
@@ -206,7 +206,7 @@
     elevation_needed: 'Administrator approval is needed for client mode. Approve the system prompt and try again.',
     clock_skew: "This device's clock differs too much from the gateway's. Check the date and time settings on both.",
     unsupported: 'Not supported on this device.',
-    offline: 'PrivateVPN is not responding. Is it still running?',
+    offline: 'Private VPN Pro is not responding. Is it still running?',
     rate_limited: 'Too many attempts — wait a moment and try again.',
   };
   const errText = (e) => (e instanceof ApiError ? ERR_TEXT[e.code] || e.message || 'Something went wrong.' : 'Something went wrong.');
@@ -297,13 +297,13 @@
     } catch (e) {
       if (e.code === 'rate_limited') {
         msg.textContent = 'Too many attempts.';
-        detail.textContent = 'Wait a moment, then open PrivateVPN from the tray icon again.';
+        detail.textContent = 'Wait a moment, then open Private VPN Pro from the tray icon again.';
       } else if (e.code === 'offline') {
-        msg.textContent = 'PrivateVPN is not responding.';
-        detail.textContent = 'Make sure PrivateVPN is running, then open it from the tray icon.';
+        msg.textContent = 'Private VPN Pro is not responding.';
+        detail.textContent = 'Make sure Private VPN Pro is running, then open it from the tray icon.';
       } else {
         msg.textContent = 'This sign-in link has expired or was already used.';
-        detail.textContent = 'Open PrivateVPN from the tray icon again. Each link works once, for one minute.';
+        detail.textContent = 'Open Private VPN Pro from the tray icon again. Each link works once, for one minute.';
       }
       return;
     }
@@ -453,11 +453,11 @@
           text: c.state === 'tunnel_up' ? 'Tunnel created — waiting for ' + gw + ' to answer.' : 'Contacting ' + gw + '…' };
       case 'degraded':
         return { title: 'Connection interrupted — traffic held, reconnecting', short: 'Interrupted · reconnecting', tone: 'warn', icon: 'i-refresh',
-          text: 'Lost contact with ' + gw + '. Your traffic is held inside the tunnel, so nothing goes out with your real IP, while PrivateVPN reconnects automatically.' };
+          text: 'Lost contact with ' + gw + '. Your traffic is held inside the tunnel, so nothing goes out with your real IP, while Private VPN Pro reconnects automatically.' };
       case 'blocked':
         if (!c.gateway_id && c.resume_pending) {
           return { title: 'Reconnecting after restart — Internet blocked until then', short: 'Reconnecting after restart', tone: 'busy', icon: 'i-lock',
-            text: 'PrivateVPN is reconnecting to ' + gw + '. Until the VPN is back, all Internet traffic stays blocked so websites cannot see your real IP. Disconnect to use the Internet without the VPN.' };
+            text: 'Private VPN Pro is reconnecting to ' + gw + '. Until the VPN is back, all Internet traffic stays blocked so websites cannot see your real IP. Disconnect to use the Internet without the VPN.' };
         }
         if (!c.gateway_id) {
           return { title: 'Internet blocked to protect your IP', short: 'Internet blocked', tone: 'danger', icon: 'i-lock',
@@ -472,7 +472,7 @@
       default:
         if (c.resume_pending) {
           return { title: 'Reconnecting after restart…', short: 'Reconnecting after restart', tone: 'busy', icon: 'i-refresh',
-            text: 'PrivateVPN is reconnecting to ' + gw + '. Until it does, this device uses its own Internet connection.' };
+            text: 'Private VPN Pro is reconnecting to ' + gw + '. Until it does, this device uses its own Internet connection.' };
         }
         return { title: 'Not protected', short: 'Not protected', tone: 'idle', icon: 'i-shield',
           text: 'The VPN is off: this device uses its own Internet connection and websites see your real IP address.' };
@@ -680,7 +680,7 @@
       if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     }
     if (replaceHash && location.hash !== '#' + v) history.replaceState(null, '', '#' + v);
-    document.title = TITLES[v] + ' · PrivateVPN';
+    document.title = TITLES[v] + ' · Private VPN Pro';
     if (v === 'log') renderLog(true);
     if (v === 'status') refreshStatus();
   }
@@ -842,7 +842,7 @@
   function buildKeyPrompt(id, where) {
     const p = {};
     p.label = h('span', null, 'Network key');
-    p.input = h('input', { type: 'text', autocomplete: 'off', spellcheck: 'false', autocapitalize: 'characters', placeholder: 'PVN1-XXXXX-XXXXX-…', maxlength: '200', 'aria-label': 'Network key' });
+    p.input = h('input', { type: 'text', autocomplete: 'off', spellcheck: 'false', autocapitalize: 'characters', placeholder: 'PVP1-XXXXX-XXXXX-…', maxlength: '200', 'aria-label': 'Network key' });
     p.err = h('p', { class: 'form-error', hidden: true, role: 'alert' });
     p.submit = h('button', { type: 'submit', class: 'btn primary' }, icon('i-unlock'), 'Unlock & connect');
     const paste = h('button', { type: 'button', class: 'btn ghost', on: { click: () => pasteInto(p.input) } }, icon('i-paste'), 'Paste');
@@ -1034,7 +1034,7 @@
   function precheckKey(t) {
     const s = t.replace(/[\s-]/g, '').toUpperCase();
     if (!s) return 'Paste the network key first.';
-    if (!s.startsWith('PVN1') || !/^[A-Z2-7]{55}$/.test(s.slice(4))) return ERR_TEXT.key_format;
+    if (!s.startsWith('PVP1') || !/^[A-Z2-7]{55}$/.test(s.slice(4))) return ERR_TEXT.key_format;
     return '';
   }
 
@@ -1348,7 +1348,7 @@
       ['LAN address', lan ? lan.ip : ''],
       ['Manual address', g.manual ? g.manual.host + (g.manual.ctrl_port ? ':' + g.manual.ctrl_port : '') : ''],
       ['Last seen', g.online ? 'Online now' : g.last_seen_ms !== null ? fmtAgoMs(g.last_seen_ms) : ''],
-    ], 'Public: every PrivateVPN device on the LAN sees these fields.'));
+    ], 'Public: every Private VPN Pro device on the LAN sees these fields.'));
     out.push(section('Identity', 'i-key', [
       ['Fingerprint', g.fingerprint ? h('span', { class: 'code' }, g.fingerprint) : ''],
       ['First seen', fmtDate(g.first_seen)],
@@ -1498,7 +1498,7 @@
     nodes.push(h('div', { class: 'reveal' },
       h('div', { class: 'grow' },
         h('div', { class: 'key-text' }, key),
-        h('p', { class: 'muted small' }, 'Scan the QR code with PrivateVPN on Android, or paste the text on another device. It is hidden again automatically after two minutes.')),
+        h('p', { class: 'muted small' }, 'Scan the QR code with Private VPN Pro on Android, or paste the text on another device. It is hidden again automatically after two minutes.')),
       img));
     nodes.push(h('div', { class: 'form-actions start' },
       h('button', { type: 'button', class: 'btn small', on: { click: () => copyText(key, 'Key copied to the clipboard.') } }, icon('i-copy'), 'Copy'),
@@ -1693,7 +1693,7 @@
     if (st && st.nat) row('From the Internet', natText(st.nat, wg, ctrl));
     if (st && st.firewall_rule) {
       if (st.firewall_rule === 'present') {
-        row('Firewall rule', badge('Present', 'ok', 'i-check'), 'Windows Firewall allows PrivateVPN to receive UDP on private and domain networks.');
+        row('Firewall rule', badge('Present', 'ok', 'i-check'), 'Windows Firewall allows Private VPN Pro to receive UDP on private and domain networks.');
       } else {
         const btn = h('button', { type: 'button', class: 'btn small', on: { click: () => addFirewallRule(btn) } }, 'Add firewall rule');
         row('Firewall rule', h('span', { class: 'badges' }, badge(st.firewall_rule === 'missing' ? 'Missing' : 'Unknown', 'warn', 'i-alert'), btn), 'Without it Windows Firewall blocks members and announcements. Adding it asks for administrator approval once.');
@@ -1705,7 +1705,7 @@
       const cmd = wg === 51820 && ctrl === 51821 ? 'sudo ufw allow 51820:51822/udp' : 'sudo ufw allow ' + wg + '/udp && sudo ufw allow ' + ctrl + '/udp && sudo ufw allow 51822/udp';
       row('Host firewall', h('span', { class: 'code' }, cmd), 'If members cannot see or reach this gateway and you use ufw, allow its UDP ports.');
     } else if (/Mac OS X|Macintosh/.test(ua)) {
-      row('Host firewall', 'macOS may ask whether PrivateVPN may accept incoming connections — choose Allow.');
+      row('Host firewall', 'macOS may ask whether Private VPN Pro may accept incoming connections — choose Allow.');
     }
     if (!rows.length) row('Status', enabled ? 'Checking…' : 'Turn gateway mode on to check reachability.');
     dl.replaceChildren(...rows);
@@ -1755,7 +1755,7 @@
         const ok = await confirmDlg({
           title: 'Turn on gateway mode?',
           text: "Members' traffic will exit from your Internet connection and carry your public IP.",
-          extra: [h('p', { class: 'muted small' }, 'Every PrivateVPN device on this LAN will see this gateway' + (name ? ' (“' + name + '”)' : '') + ', its OS and app version. Only devices with the network key can connect.')],
+          extra: [h('p', { class: 'muted small' }, 'Every Private VPN Pro device on this LAN will see this gateway' + (name ? ' (“' + name + '”)' : '') + ', its OS and app version. Only devices with the network key can connect.')],
           ok: 'Turn on',
         });
         if (!ok) return;
@@ -2028,7 +2028,7 @@
     ar.checked = arSet !== null ? arSet : true;
     ar.disabled = !set || arSet === null || S.ksBusy;
     const os = S.status && OS_LABEL[S.status.os] && S.status.os !== 'android' ? OS_LABEL[S.status.os] : 'Windows/macOS/Linux';
-    $('set-ar-admin').textContent = 'After a restart your computer stays blocked until PrivateVPN reconnects; ' + os + ' will ask for administrator approval at login.';
+    $('set-ar-admin').textContent = 'After a restart your computer stays blocked until Private VPN Pro reconnects; ' + os + ' will ask for administrator approval at login.';
     $('set-ar-hint').hidden = !(set && set.ui.autostart === false && ar.checked);
     const theme = (set && set.ui.theme) || 'system';
     for (const r of document.querySelectorAll('#set-theme input')) r.checked = r.value === theme;
@@ -2062,7 +2062,7 @@
         ev.target.checked = true; // reflect the real state until confirmed and saved
         const ok = await confirmDlg({
           title: 'Turn off the kill switch?',
-          text: 'Without it, if the VPN connection drops or PrivateVPN crashes, your traffic goes out directly and websites see your real IP address.',
+          text: 'Without it, if the VPN connection drops or Private VPN Pro crashes, your traffic goes out directly and websites see your real IP address.',
           extra: [h('p', { class: 'muted small' }, 'While connected, traffic is still held inside the tunnel when the gateway stops answering — but nothing blocks it if the tunnel itself goes away.')],
           ok: 'Turn off', danger: true,
         });
@@ -2073,8 +2073,8 @@
     $('set-allowlan').addEventListener('change', (ev) => putClientSetting({ allow_lan: ev.target.checked },
       ev.target.checked ? 'Local network stays reachable while blocked.' : 'Local network is blocked too while the kill switch is active.'));
     $('set-autoreconnect').addEventListener('change', (ev) => putClientSetting({ auto_reconnect: ev.target.checked },
-      ev.target.checked ? 'PrivateVPN reconnects automatically after a restart.' : 'PrivateVPN no longer reconnects by itself after a restart.'));
-    $('set-autostart').addEventListener('change', (ev) => putSettings({ ui: { autostart: ev.target.checked } }, ev.target.checked ? 'PrivateVPN starts at login.' : 'PrivateVPN no longer starts at login.'));
+      ev.target.checked ? 'Private VPN Pro reconnects automatically after a restart.' : 'Private VPN Pro no longer reconnects by itself after a restart.'));
+    $('set-autostart').addEventListener('change', (ev) => putSettings({ ui: { autostart: ev.target.checked } }, ev.target.checked ? 'Private VPN Pro starts at login.' : 'Private VPN Pro no longer starts at login.'));
     for (const r of document.querySelectorAll('#set-theme input')) {
       r.addEventListener('change', () => {
         if (!r.checked) return;
@@ -2089,7 +2089,7 @@
       const p = Number(pf.elements.port.value);
       if (!Number.isInteger(p) || p < 1024 || p > 65535) { toast('The port must be between 1024 and 65535.', 'error'); return; }
       delete pf.elements.port.dataset.dirty;
-      await putSettings({ ui: { port: p } }, 'Saved. The new port is used after PrivateVPN restarts.');
+      await putSettings({ ui: { port: p } }, 'Saved. The new port is used after Private VPN Pro restarts.');
     });
     $('btn-signout').addEventListener('click', async () => {
       try { await api('DELETE', '/session'); } catch (_) { /* signed out anyway */ }
@@ -2099,8 +2099,8 @@
     });
     $('btn-quit').addEventListener('click', async () => {
       const ok = await confirmDlg({
-        title: 'Quit PrivateVPN?',
-        text: 'This disconnects this device and removes the kill switch\'s block, turns gateway mode off until the next start and removes the tray icon. PrivateVPN does not reconnect by itself after you quit.',
+        title: 'Quit Private VPN Pro?',
+        text: 'This disconnects this device and removes the kill switch\'s block, turns gateway mode off until the next start and removes the tray icon. Private VPN Pro does not reconnect by itself after you quit.',
         extra: S.status && ACTIVE.has(S.status.client.state) ? [h('p', { class: 'muted small' }, 'Your system may ask for administrator approval to remove the block.')] : [],
         ok: 'Quit', danger: true,
       });
@@ -2109,7 +2109,7 @@
       if (es) es.close();
       try { await api('POST', '/quit'); } catch (_) { /* the server may be gone already */ }
       document.body.replaceChildren(h('main', { class: 'login' }, h('div', { class: 'card login-card' },
-        icon('i-shield', 'login-mark'), h('h1', null, 'PrivateVPN has quit'), h('p', { class: 'muted' }, 'You can close this tab.'))));
+        icon('i-shield', 'login-mark'), h('h1', null, 'Private VPN Pro has quit'), h('p', { class: 'muted' }, 'You can close this tab.'))));
     });
   }
 

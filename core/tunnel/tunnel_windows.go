@@ -15,7 +15,7 @@ import (
 	"golang.zx2c4.com/wireguard/tun"
 	"golang.zx2c4.com/wireguard/windows/tunnel/winipcfg"
 
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
 )
 
 // Windows client tunnel (§9.2), run inside the elevated helper.
@@ -23,7 +23,7 @@ import (
 // Kill switch: persistent WFP filters (wfp_windows.go) installed before any
 // route changes and replaced in one transaction on re-Up/SetEndpoint. BFE
 // enforces them from boot, with or without the helper, until Down or
-// `privatevpn unblock` deletes them by key.
+// `private-vpn-pro unblock` deletes them by key.
 
 // fixedGUID keeps one Windows network profile for the adapter.
 var fixedGUID = windows.GUID{
@@ -31,7 +31,7 @@ var fixedGUID = windows.GUID{
 	Data4: [8]byte{0x9E, 0x2B, 0x5A, 0x1F, 0x3D, 0x8C, 0x0E, 0x77},
 }
 
-const adapterName = "PrivateVPN"
+const adapterName = "Private VPN Pro"
 
 // hostRouteMetric marks our /32 routes on the physical interface so a
 // crashed helper's leftovers can be swept at the next start without
@@ -150,7 +150,7 @@ func (t *winTunnel) upLocked(cfg Config) (s *winSession, err error) {
 	guid := fixedGUID
 	tdev, err := tun.CreateTUNWithRequestedGUID(adapterName, &guid, cfg.MTU)
 	if err != nil {
-		return nil, fmt.Errorf("tunnel: create Wintun adapter (wintun.dll must be next to privatevpn.exe): %w", err)
+		return nil, fmt.Errorf("tunnel: create Wintun adapter (wintun.dll must be next to private-vpn-pro.exe): %w", err)
 	}
 	nt, ok := tdev.(*tun.NativeTun)
 	if !ok {
@@ -178,7 +178,7 @@ func (t *winTunnel) upLocked(cfg Config) (s *winSession, err error) {
 		} else {
 			s.ks, t.blockOn = true, true
 			if e := copyRecoveryExe(); e != nil {
-				t.log.Printf("tunnel", "recovery copy of privatevpn.exe not written: %v", e)
+				t.log.Printf("tunnel", "recovery copy of private-vpn-pro.exe not written: %v", e)
 			}
 		}
 	}
@@ -452,8 +452,8 @@ func (t *winTunnel) Close() error {
 	return nil
 }
 
-// recoveryExePath is an administrator-only copy of privatevpn.exe kept
-// while the kill switch is engaged, so `privatevpn unblock` is available
+// recoveryExePath is an administrator-only copy of private-vpn-pro.exe kept
+// while the kill switch is engaged, so `private-vpn-pro unblock` is available
 // even if the app was deleted while blocked (the persistent filters would
 // otherwise outlive every tool that can delete them). Program Files is
 // writable by administrators only, so the copy cannot be swapped by a
@@ -463,7 +463,7 @@ func recoveryExePath() string {
 	if dir == "" {
 		dir = `C:\Program Files`
 	}
-	return filepath.Join(dir, "PrivateVPN", "recovery", "privatevpn.exe")
+	return filepath.Join(dir, "Private VPN Pro", "recovery", "private-vpn-pro.exe")
 }
 
 func copyRecoveryExe() error {

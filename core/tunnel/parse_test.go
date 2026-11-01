@@ -8,7 +8,7 @@ import (
 )
 
 func TestHasCapNetAdmin(t *testing.T) {
-	status := "Name:\tprivatevpn\nCapInh:\t0000000000000000\nCapPrm:\t0000000000001000\nCapEff:\t%s\nCapBnd:\t000001ffffffffff\n"
+	status := "Name:\tprivate-vpn-pro\nCapInh:\t0000000000000000\nCapPrm:\t0000000000001000\nCapEff:\t%s\nCapBnd:\t000001ffffffffff\n"
 	for eff, want := range map[string]bool{
 		"0000000000001000": true,  // CAP_NET_ADMIN only (setcap)
 		"000001ffffffffff": true,  // root

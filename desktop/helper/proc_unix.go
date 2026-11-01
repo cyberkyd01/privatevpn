@@ -117,7 +117,7 @@ func socketPath(dirs ...string) (string, error) {
 }
 
 func uidDir(base string) string {
-	return filepath.Join(base, "privatevpn-"+strconv.Itoa(os.Getuid()))
+	return filepath.Join(base, "private-vpn-pro-"+strconv.Itoa(os.Getuid()))
 }
 
 // dialUnix connects to path once the helper listens, until connectTimeout,

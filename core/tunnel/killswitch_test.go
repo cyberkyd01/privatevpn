@@ -102,8 +102,8 @@ func TestPFParsers(t *testing.T) {
 }
 
 func TestLaunchdPlistAndSystemdUnit(t *testing.T) {
-	p := launchdPlist("app.privatevpn.killswitch", "/Library/Application Support/PrivateVPN/bin/privatevpn")
-	for _, want := range []string{"<string>app.privatevpn.killswitch</string>", "<string>/Library/Application Support/PrivateVPN/bin/privatevpn</string>",
+	p := launchdPlist("app.privatevpnpro.killswitch", "/Library/Application Support/Private VPN Pro/bin/private-vpn-pro")
+	for _, want := range []string{"<string>app.privatevpnpro.killswitch</string>", "<string>/Library/Application Support/Private VPN Pro/bin/private-vpn-pro</string>",
 		"<string>killswitch-boot</string>", "<key>RunAtLoad</key>\n\t<true/>", "<key>KeepAlive</key>\n\t<false/>"} {
 		if !strings.Contains(p, want) {
 			t.Errorf("plist lacks %q", want)
@@ -112,9 +112,9 @@ func TestLaunchdPlistAndSystemdUnit(t *testing.T) {
 	if !strings.Contains(launchdPlist("l", "/a&b<c>"), "<string>/a&amp;b&lt;c&gt;</string>") {
 		t.Error("plist path not escaped")
 	}
-	u := systemdUnit("/var/lib/privatevpn/bin/privatevpn")
+	u := systemdUnit("/var/lib/private-vpn-pro/bin/private-vpn-pro")
 	for _, want := range []string{"Before=network-pre.target", "DefaultDependencies=no", "Type=oneshot", "RemainAfterExit=yes",
-		`ExecStart="/var/lib/privatevpn/bin/privatevpn" killswitch-boot`, "WantedBy=sysinit.target"} {
+		`ExecStart="/var/lib/private-vpn-pro/bin/private-vpn-pro" killswitch-boot`, "WantedBy=sysinit.target"} {
 		if !strings.Contains(u, want) {
 			t.Errorf("unit lacks %q", want)
 		}
@@ -167,7 +167,7 @@ func TestLinuxBlockArgs(t *testing.T) {
 	if len(boot) != 7 || strings.Contains(strings.Join(boot, "\n"), "20562") {
 		t.Errorf("boot: %q", boot)
 	}
-	if got := linuxTunnelDefaultArgs("-6", "pvn0"); strings.Join(got, " ") != "-6 route add default dev pvn0 table 20566" {
+	if got := linuxTunnelDefaultArgs("-6", "pvp0"); strings.Join(got, " ") != "-6 route add default dev pvp0 table 20566" {
 		t.Errorf("tunnel default: %q", got)
 	}
 	if got := linuxEndpointRuleArgs("del", netip.MustParseAddr("::ffff:203.0.113.9"), "20564"); strings.Join(got, " ") != "-4 rule del to 203.0.113.9/32 table main priority 20564" {
@@ -190,7 +190,7 @@ func TestParseIPRules(t *testing.T) {
 	if n := len(staleHostRules(rules, 20564, netip.Addr{})); n != 2 {
 		t.Errorf("all stale: %d", n)
 	}
-	if !routeShowHasBlackhole([]byte("default dev pvn0 scope link\nblackhole default metric 20566\n")) || routeShowHasBlackhole([]byte("default dev pvn0 scope link\n")) {
+	if !routeShowHasBlackhole([]byte("default dev pvp0 scope link\nblackhole default metric 20566\n")) || routeShowHasBlackhole([]byte("default dev pvp0 scope link\n")) {
 		t.Error("routeShowHasBlackhole")
 	}
 }

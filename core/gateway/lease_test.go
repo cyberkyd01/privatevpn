@@ -86,15 +86,15 @@ func TestRedacted(t *testing.T) {
 }
 
 func TestDeriveSubnet(t *testing.T) {
-	// Known answers (Python hashlib): SHA-256("pvn1 subnet"||key)[0] = 171, 11.
+	// Known answers (Python hashlib): SHA-256("pvp1 subnet"||key)[0] = 191, 169.
 	var pub [32]byte
-	if got := DeriveSubnet(pub); got != netip.MustParsePrefix("10.77.172.0/24") {
+	if got := DeriveSubnet(pub); got != netip.MustParsePrefix("10.77.192.0/24") {
 		t.Fatalf("zero key: %v", got)
 	}
 	for i := range pub {
 		pub[i] = byte(i)
 	}
-	if got := DeriveSubnet(pub); got != netip.MustParsePrefix("10.77.12.0/24") {
+	if got := DeriveSubnet(pub); got != netip.MustParsePrefix("10.77.170.0/24") {
 		t.Fatalf("0..31 key: %v", got)
 	}
 	seen := map[byte]bool{}

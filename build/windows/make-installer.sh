@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Builds the PrivateVPN Windows installer with NSIS (makensis 3.x, which
+# Builds the Private VPN Pro Windows installer with NSIS (makensis 3.x, which
 # also runs on Linux and macOS).
 #   usage: make-installer.sh <amd64|arm64> <version> <srcdir> <out.exe>
-# srcdir holds privatevpn.exe, wintun.dll and WINTUN-LICENSE.txt (as
+# srcdir holds private-vpn-pro.exe, wintun.dll and WINTUN-LICENSE.txt (as
 # produced by fetch-wintun.sh); LICENSE is taken from the repository.
 set -euo pipefail
 

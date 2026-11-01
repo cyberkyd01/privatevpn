@@ -13,7 +13,7 @@ func DefaultDir() (string, error) {
 	switch runtime.GOOS {
 	case "windows":
 		if d := os.Getenv("LOCALAPPDATA"); d != "" {
-			return filepath.Join(d, "PrivateVPN"), nil
+			return filepath.Join(d, "Private VPN Pro"), nil
 		}
 		return "", errors.New("state: LOCALAPPDATA not set")
 	case "darwin":
@@ -21,16 +21,16 @@ func DefaultDir() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		return filepath.Join(home, "Library", "Application Support", "PrivateVPN"), nil
+		return filepath.Join(home, "Library", "Application Support", "Private VPN Pro"), nil
 	default:
 		if d := os.Getenv("XDG_CONFIG_HOME"); filepath.IsAbs(d) {
-			return filepath.Join(d, "privatevpn"), nil
+			return filepath.Join(d, "private-vpn-pro"), nil
 		}
 		home, err := os.UserHomeDir()
 		if err != nil {
 			return "", err
 		}
-		return filepath.Join(home, ".config", "privatevpn"), nil
+		return filepath.Join(home, ".config", "private-vpn-pro"), nil
 	}
 }
 

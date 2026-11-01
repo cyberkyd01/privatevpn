@@ -2,7 +2,7 @@
 
 package mobile
 
-import "github.com/cyberkyd01/privatevpn/core/tunnel"
+import "github.com/cyberkyd01/private-vpn-pro/core/tunnel"
 
 // newTunnel: the facade only runs on Android; on other GOOS values the
 // package still compiles (go vet ./..., host builds) but has no tunnel, so

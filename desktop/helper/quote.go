@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-var errUnsafePath = errors.New("helper: the application path contains characters that cannot be passed to the macOS administrator prompt safely (allowed: letters, digits, space and / _ . -); move PrivateVPN to /Applications")
+var errUnsafePath = errors.New("helper: the application path contains characters that cannot be passed to the macOS administrator prompt safely (allowed: letters, digits, space and / _ . -); move Private VPN Pro to /Applications")
 
 // safeShellPath allows only absolute paths over [A-Za-z0-9/_.\- ]: no quote,
 // backslash, $, `, ;, newline or anything else with meaning to sh or to an
@@ -45,9 +45,9 @@ func appleScriptHelperCommand(exe, socket string, uid int) (string, error) {
 	return `do shell script "` + sh + `" with administrator privileges`, nil
 }
 
-// validPipeName accepts only privatevpn-helper-<16 hex> (Windows).
+// validPipeName accepts only private-vpn-pro-helper-<16 hex> (Windows).
 func validPipeName(name string) bool {
-	return strings.HasPrefix(name, "privatevpn-helper-") && isHex16(strings.TrimPrefix(name, "privatevpn-helper-"))
+	return strings.HasPrefix(name, "private-vpn-pro-helper-") && isHex16(strings.TrimPrefix(name, "private-vpn-pro-helper-"))
 }
 
 // sidSyntaxOK admits only "S-1-<digits and dashes>", so the value cannot

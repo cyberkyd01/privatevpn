@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cyberkyd01/privatevpn/core/netbind"
+	"github.com/cyberkyd01/private-vpn-pro/core/netbind"
 	"golang.org/x/net/dns/dnsmessage"
 	"gvisor.dev/gvisor/pkg/tcpip/adapters/gonet"
 )

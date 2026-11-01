@@ -9,14 +9,14 @@ import (
 // maxLANIPs caps LANIPv4s (§10.5 lan_ips ≤ 8).
 const maxLANIPs = 8
 
-// ourTunnelPrefixes are name prefixes of PrivateVPN's own tunnel interfaces
-// (Linux "pvn0", macOS "utunN"). On Windows the Wintun adapter is named
-// "PrivateVPN" (see isOurTunnel).
-var ourTunnelPrefixes = []string{"pvn", "utun"}
+// ourTunnelPrefixes are name prefixes of Private VPN Pro's own tunnel interfaces
+// (Linux "pvp0", macOS "utunN"). On Windows the Wintun adapter is named
+// "Private VPN Pro" (see isOurTunnel).
+var ourTunnelPrefixes = []string{"pvp", "utun"}
 
 // isOurTunnel reports whether name is one of our tunnel interfaces.
 func isOurTunnel(name string) bool {
-	if strings.EqualFold(name, "PrivateVPN") {
+	if strings.EqualFold(name, "Private VPN Pro") {
 		return true
 	}
 	lower := strings.ToLower(name)

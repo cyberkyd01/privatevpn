@@ -36,7 +36,7 @@ func netsh(args ...string) ([]byte, int, error) {
 	return out, 0, nil
 }
 
-// Check reports whether both PrivateVPN rules exist for exe. It does not
+// Check reports whether both Private VPN Pro rules exist for exe. It does not
 // need elevation.
 func Check(exe string) (bool, error) {
 	for _, name := range ruleNames {
@@ -76,7 +76,7 @@ func Add(exe string) error {
 	return nil
 }
 
-// Remove deletes every PrivateVPN rule; it must run elevated.
+// Remove deletes every Private VPN Pro rule; it must run elevated.
 func Remove() error {
 	for _, name := range ruleNames {
 		netsh(deleteArgs(name)...) // a missing rule exits non-zero; verified below

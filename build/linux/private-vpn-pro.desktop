@@ -1,0 +1,14 @@
+# Install: copy private-vpn-pro to /usr/local/bin (or ~/.local/bin), this file to
+# ~/.local/share/applications/ and icon.png to
+# ~/.local/share/icons/hicolor/256x256/apps/private-vpn-pro.png
+[Desktop Entry]
+Type=Application
+Name=Private VPN Pro
+GenericName=VPN gateway
+Comment=Private VPN gateways for your own devices
+Exec=private-vpn-pro
+Icon=private-vpn-pro
+Terminal=false
+Categories=Network;
+Keywords=VPN;WireGuard;gateway;
+StartupNotify=false

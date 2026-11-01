@@ -13,13 +13,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/cyberkyd01/privatevpn/core/api"
-	"github.com/cyberkyd01/privatevpn/core/beacon"
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
-	"github.com/cyberkyd01/privatevpn/core/netkey"
-	"github.com/cyberkyd01/privatevpn/core/state"
-	"github.com/cyberkyd01/privatevpn/core/sysinfo"
-	"github.com/cyberkyd01/privatevpn/core/tunnel"
+	"github.com/cyberkyd01/private-vpn-pro/core/api"
+	"github.com/cyberkyd01/private-vpn-pro/core/beacon"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/netkey"
+	"github.com/cyberkyd01/private-vpn-pro/core/state"
+	"github.com/cyberkyd01/private-vpn-pro/core/sysinfo"
+	"github.com/cyberkyd01/private-vpn-pro/core/tunnel"
 )
 
 const isAndroid = runtime.GOOS == "android"
@@ -85,7 +85,7 @@ func newCore(e *Engine) (*core, error) {
 	}
 	c.wg.Add(1)
 	go c.housekeeping()
-	c.log.Printf("app", "PrivateVPN %s started (%s)", e.opts.AppVersion, sysinfo.OSName())
+	c.log.Printf("app", "Private VPN Pro %s started (%s)", e.opts.AppVersion, sysinfo.OSName())
 	if !isAndroid {
 		c.firstRunAutostart()
 		// Restore the roles that were on before a restart or crash.

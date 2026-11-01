@@ -9,9 +9,9 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/cyberkyd01/privatevpn/core/api"
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
-	"github.com/cyberkyd01/privatevpn/core/tunnel"
+	"github.com/cyberkyd01/private-vpn-pro/core/api"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/tunnel"
 )
 
 // Platform supplies OS-specific capabilities. Nil funcs mean "unsupported".
@@ -90,7 +90,7 @@ func (e *Engine) Call(method string, args []byte) ([]byte, *api.Error) {
 	closed := e.closed
 	e.subMu.Unlock()
 	if closed {
-		return nil, api.Errf(api.CodeConflict, 409, "PrivateVPN is shutting down")
+		return nil, api.Errf(api.CodeConflict, 409, "Private VPN Pro is shutting down")
 	}
 	h, ok := handlers[method]
 	if !ok {

@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cyberkyd01/privatevpn/core/api"
-	"github.com/cyberkyd01/privatevpn/core/netkey"
-	"github.com/cyberkyd01/privatevpn/core/state"
+	"github.com/cyberkyd01/private-vpn-pro/core/api"
+	"github.com/cyberkyd01/private-vpn-pro/core/netkey"
+	"github.com/cyberkyd01/private-vpn-pro/core/state"
 )
 
 type keyringItem struct {
@@ -107,7 +107,7 @@ func (c *core) keyringAdd(args []byte) (any, *api.Error) {
 	}
 	k, err := netkey.Parse(a.KeyText)
 	if err != nil {
-		return nil, api.Errf(api.CodeKeyFormat, http.StatusBadRequest, "that is not a valid PrivateVPN key (check for typos)")
+		return nil, api.Errf(api.CodeKeyFormat, http.StatusBadRequest, "that is not a valid Private VPN Pro key (check for typos)")
 	}
 	label := clean(a.Label, 32)
 	if label == "" {

@@ -14,8 +14,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
-	"github.com/cyberkyd01/privatevpn/core/tunnel"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/tunnel"
 )
 
 // ErrHelperGone is returned once the privileged helper has exited or its
@@ -156,7 +156,7 @@ func (c *Client) ensure() error {
 	if !resp.OK {
 		c.fail(false)
 		if resp.Code == codeVersionMismatch {
-			return fmt.Errorf("helper: version mismatch (helper %s, app %s); restart PrivateVPN", resp.Version, c.version)
+			return fmt.Errorf("helper: version mismatch (helper %s, app %s); restart Private VPN Pro", resp.Version, c.version)
 		}
 		return fmt.Errorf("helper: hello refused: %s", resp.Error)
 	}

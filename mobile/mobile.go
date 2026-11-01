@@ -6,9 +6,9 @@
 // Bound with:
 //
 //	gomobile bind -target android/arm64,android/arm,android/amd64 -androidapi 26 \
-//	  -javapkg app.privatevpn -o android/app/libs/core.aar ./mobile
+//	  -javapkg app.privatevpnpro -o android/app/libs/core.aar ./mobile
 //
-// which generates the Java package app.privatevpn.mobile.
+// which generates the Java package app.privatevpnpro.mobile.
 package mobile
 
 import (
@@ -17,9 +17,9 @@ import (
 	"runtime/debug"
 	"sync"
 
-	"github.com/cyberkyd01/privatevpn/core/api"
-	"github.com/cyberkyd01/privatevpn/core/engine"
-	"github.com/cyberkyd01/privatevpn/core/eventlog"
+	"github.com/cyberkyd01/private-vpn-pro/core/api"
+	"github.com/cyberkyd01/private-vpn-pro/core/engine"
+	"github.com/cyberkyd01/private-vpn-pro/core/eventlog"
 )
 
 // Callbacks is implemented in Kotlin. Methods are called from Go threads;
